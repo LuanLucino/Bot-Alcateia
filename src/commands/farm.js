@@ -29,14 +29,27 @@ module.exports = {
     const imagem = interaction.options.getAttachment('imagem');
 
     const embed = new EmbedBuilder()
-      .setTitle('Registro de Farm Recebido')
-      .setColor('#1e90ff') // azul
+      .setColor('#1d6dfa') // Cor temática azul
+      .setAuthor({
+        name: 'Registro de Farm',
+        iconURL: 'https://cdn-icons-png.flaticon.com/512/616/616408.png' // Ícone no título (exemplo)
+      })
       .addFields(
-        { name: '🍄 Cogumelo Azul', value: `**${cogumeloAzul}** unidades`, inline: true },
-        { name: '🌱 Semente Azul', value: `**${sementeAzul}** unidades`, inline: true }
+        {
+          name: '🍄 Cogumelo Azul',
+          value: `**── ${cogumeloAzul} ──**`,
+          inline: true
+        },
+        {
+          name: '🌱 Semente Azul',
+          value: `**── ${sementeAzul} ──**`,
+          inline: true
+        }
       )
       .setImage(imagem.url)
-      .setFooter({ text: `Registrado por ${interaction.user.username}` })
+      .setFooter({
+        text: `Registrado por ${interaction.user.username}`
+      })
       .setTimestamp();
 
     return interaction.reply({
