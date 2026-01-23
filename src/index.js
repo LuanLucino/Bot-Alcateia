@@ -41,25 +41,4 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-
-const sqlite3 = require("sqlite3").verbose();
-const db = new sqlite3.Database("./data/ranking.db");
-
-db.serialize(() => {
-    db.run(`
-        CREATE TABLE IF NOT EXISTS cogumelos (
-            userId TEXT,
-            quantidade INTEGER
-        )
-    `);
-
-    db.run(`
-        CREATE TABLE IF NOT EXISTS sementes (
-            userId TEXT,
-            quantidade INTEGER
-        )
-    `);
-});
-
-
 client.login(process.env.TOKEN);
