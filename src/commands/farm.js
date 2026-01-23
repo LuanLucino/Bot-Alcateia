@@ -30,12 +30,13 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setTitle('Registro de Farm Recebido')
-      .setColor('#2f3136') // cinza escuro bonito
+      .setColor('#1e90ff') // azul
       .addFields(
-        { name: 'Cogumelo Azul', value: `${cogumeloAzul}`, inline: true },
-        { name: 'Semente Azul', value: `${sementeAzul}`, inline: true }
+        { name: '🍄 Cogumelo Azul', value: `**${cogumeloAzul}** unidades`, inline: true },
+        { name: '🌱 Semente Azul', value: `**${sementeAzul}** unidades`, inline: true }
       )
       .setImage(imagem.url)
+      .setFooter({ text: `Registrado por ${interaction.user.username}` })
       .setTimestamp();
 
     return interaction.reply({
