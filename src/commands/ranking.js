@@ -8,7 +8,7 @@ module.exports = {
     .setDescription("Exibe o ranking separado de cogumelos e sementes."),
 
   async execute(interaction) {
-    const db = new sqlite3.Database(path.join("data", "farm.db"));
+    const db = new sqlite3.Database(path.join("/data", "farm.db"));
 
     // Ranking de Cogumelos
     const rankingCog = await new Promise((resolve, reject) => {
