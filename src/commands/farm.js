@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, Attachment } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -28,12 +28,18 @@ module.exports = {
     const sementeAzul = interaction.options.getInteger('semente_azul');
     const imagem = interaction.options.getAttachment('imagem');
 
+    const embed = new EmbedBuilder()
+      .setTitle('Registro de Farm Recebido')
+      .setColor('#2f3136') // cinza escuro bonito
+      .addFields(
+        { name: 'Cogumelo Azul', value: `${cogumeloAzul}`, inline: true },
+        { name: 'Semente Azul', value: `${sementeAzul}`, inline: true }
+      )
+      .setImage(imagem.url)
+      .setTimestamp();
+
     return interaction.reply({
-      content:
-        `Registro de farm recebido:\n` +
-        `Cogumelo Azul: ${cogumeloAzul}\n` +
-        `Semente Azul: ${sementeAzul}\n` +
-        `Imagem: ${imagem.url}`,
+      embeds: [embed],
       ephemeral: false
     });
   }
