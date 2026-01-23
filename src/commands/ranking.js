@@ -1,30 +1,34 @@
-const { SlashCommandBuilder } = require('discord.js');
-const db = require('../database/db');
+const { EmbedBuilder } = require("discord.js");
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('ranking')
-    .setDescription('Mostra o ranking dos farmers'),
+    name: "ranking",
+    description: "Mostra os rankings de cogumelo e semente",
+    execute(client, message, args, db) {
 
-  async execute(interaction) {
-    db.all(
-      `SELECT user_id, farm_points FROM users ORDER BY farm_points DESC LIMIT 10`,
-      (err, rows) => {
-        if (err) {
-          console.error(err);
-          return interaction.reply('Erro ao consultar ranking.');
-        }
+        // Busca os dados no DB
+        const cogumelos = db.get("cogumelos") || [];
+        const sementes = db.get("sementes") || [];
 
-        if (rows.length === 0) {
-          return interaction.reply('Nenhum usuário farmou ainda.');
-        }
+        const rankCog = cogumelos
+            .sort((a, b) => b.quantidade - a.quantidade)
+            .map((item, index) => `**${index+1}.** <@${item.userId}> - ${item.quantidade}`)
+            .join("\n");
 
-        const formatted = rows
-          .map((r, i) => `${i + 1}. <@${r.user_id}> — ${r.farm_points} pontos`)
-          .join('\n');
+        const rankSem = sementes
+            .sort((a, b) => b.quantidade - a.quantidade)
+            .map((item, index) => `**${index+1}.** <@${item.userId}> - ${item.quantidade}`)
+            .join("\n");
 
-        return interaction.reply(`Ranking:\n${formatted}`);
-      }
-    );
-  }
+        const embedCog = new EmbedBuilder()
+            .setTitle("Ranking - Cogumelo")
+            .setDescription(rankCog || "Nenhum registro ainda.")
+            .setColor("Blue");
+
+        const embedSem = new EmbedBuilder()
+            .setTitle("Ranking - Semente")
+            .setDescription(rankSem || "Nenhum registro ainda.")
+            .setColor("Green");
+
+        message.reply({ embeds: [embedCog, embedSem] });
+    }
 };
