@@ -29,20 +29,17 @@ module.exports = {
     const imagem = interaction.options.getAttachment('imagem');
 
     const embed = new EmbedBuilder()
-      .setColor('#1d6dfa') // Cor temática azul
-      .setAuthor({
-        name: 'Registro de Farm',
-        iconURL: 'https://cdn-icons-png.flaticon.com/512/616/616408.png' // Ícone no título (exemplo)
-      })
+      .setColor('#1d6dfa') // Cor temática
+      .setTitle('Registro de Farm') // Sem emoji
       .addFields(
         {
-          name: '🍄 Cogumelo Azul',
-          value: `**── ${cogumeloAzul} ──**`,
+          name: 'Cogumelo Azul',
+          value: `**${cogumeloAzul} unidades**`,
           inline: true
         },
         {
-          name: '🌱 Semente Azul',
-          value: `**── ${sementeAzul} ──**`,
+          name: 'Semente Azul',
+          value: `**${sementeAzul} unidades**`,
           inline: true
         }
       )
