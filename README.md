@@ -1,2 +1,2 @@
-# Bot-Alcateia
+# Bot Alcateia
 Bot Alcateia
