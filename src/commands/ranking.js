@@ -1,12 +1,21 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../database/db.js');
 
+const CANAL_PERMITIDO = '1461496157594189864';
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('ranking')
     .setDescription('Exibe o ranking combinado de Cogumelo Azul e Semente Azul.'),
 
   async execute(interaction) {
+
+    if (interaction.channelId !== CANAL_PERMITIDO) {
+      return interaction.reply({
+        content: `Este comando só pode ser usado no canal correto.`,
+        ephemeral: true
+      });
+    }
 
     db.all(
       `SELECT user_id, cogumelo, semente, (cogumelo + semente) as total 
@@ -31,8 +40,11 @@ module.exports = {
         let pos = 1;
 
         for (const r of rows) {
-          const user = await interaction.client.users.fetch(r.user_id).catch(() => null);
-          const nome = user ? user.username : 'Usuário desconhecido';
+          const membro = await interaction.guild.members.fetch(r.user_id).catch(() => null);
+
+          const nome = membro
+            ? (membro.nickname || membro.user.username)
+            : 'Usuário desconhecido';
 
           textoRanking += `${pos}. **${nome}** — 🍄 ${r.cogumelo} | 🌱 ${r.semente} (Total: ${r.total})\n`;
 

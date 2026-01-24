@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../database/db.js');
 
+const CANAL_PERMITIDO = '1461496157594189864';
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('farm')
@@ -25,12 +27,22 @@ module.exports = {
     ),
 
   async execute(interaction) {
+
+    if (interaction.channelId !== CANAL_PERMITIDO) {
+      return interaction.reply({
+        content: `Este comando só pode ser usado no canal correto.`,
+        ephemeral: true
+      });
+    }
+
+    const membro = interaction.guild.members.cache.get(interaction.user.id);
+    const nome = membro ? (membro.nickname || interaction.user.username) : interaction.user.username;
+
     const userId = interaction.user.id;
     const cogAdd = interaction.options.getInteger('cogumelo_azul');
     const semAdd = interaction.options.getInteger('semente_azul');
     const imagem = interaction.options.getAttachment('imagem');
 
-    // Verifica se o usuário existe
     db.get(`SELECT * FROM users_farm WHERE user_id = ?`, [userId], (err, row) => {
       if (err) {
         console.error(err);
@@ -38,7 +50,6 @@ module.exports = {
       }
 
       if (row) {
-        // Atualiza somando ao total existente
         const newCog = row.cogumelo + cogAdd;
         const newSem = row.semente + semAdd;
 
@@ -47,22 +58,21 @@ module.exports = {
           [newCog, newSem, userId]
         );
 
-        enviarEmbed(interaction, cogAdd, semAdd, newCog, newSem, imagem.url, false);
+        enviarEmbed(interaction, nome, cogAdd, semAdd, newCog, newSem, imagem.url, false);
 
       } else {
-        // Primeiro registro do usuário
         db.run(
           `INSERT INTO users_farm (user_id, cogumelo, semente) VALUES (?, ?, ?)`,
           [userId, cogAdd, semAdd]
         );
 
-        enviarEmbed(interaction, cogAdd, semAdd, cogAdd, semAdd, imagem.url, true);
+        enviarEmbed(interaction, nome, cogAdd, semAdd, cogAdd, semAdd, imagem.url, true);
       }
     });
   }
 };
 
-function enviarEmbed(interaction, addCog, addSem, totalCog, totalSem, img, primeiroRegistro) {
+function enviarEmbed(interaction, nome, addCog, addSem, totalCog, totalSem, img, primeiroRegistro) {
   const embed = new EmbedBuilder()
     .setColor('#1d6dfa')
     .setTitle('Registro de Farm')
@@ -80,7 +90,7 @@ function enviarEmbed(interaction, addCog, addSem, totalCog, totalSem, img, prime
       }
     )
     .setImage(img)
-    .setFooter({ text: `Registrado por ${interaction.user.username}` })
+    .setFooter({ text: `Registrado por ${nome}` })
     .setTimestamp();
 
   return interaction.reply({ embeds: [embed], ephemeral: false });
