@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('node:path');
 const fs = require('node:fs');
 
-// Garantir que a pasta /data exista (Railway usa isso)
+// Para Railway: banco deve morar em /data
 const dataPath = '/data';
 if (!fs.existsSync(dataPath)) {
   fs.mkdirSync(dataPath, { recursive: true });
@@ -17,7 +17,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// Criar tabela semanal
+// Tabela SEMANAL
 db.run(`
   CREATE TABLE IF NOT EXISTS users_farm (
     user_id TEXT PRIMARY KEY,
@@ -26,7 +26,7 @@ db.run(`
   )
 `);
 
-// Criar tabela mensal (acumula todas semanas do mês)
+// Tabela MENSAL (acumula semanas)
 db.run(`
   CREATE TABLE IF NOT EXISTS users_farm_monthly (
     user_id TEXT PRIMARY KEY,

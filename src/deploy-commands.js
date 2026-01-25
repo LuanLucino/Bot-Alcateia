@@ -8,22 +8,30 @@ const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-  const command = require(path.join(commandsPath, file));
+  const filePath = path.join(commandsPath, file);
+  const command = require(filePath);
+
+  // Ignorar arquivos que não exportam slash
+  if (!command.data) {
+    console.log(`[DEPLOY] Ignorando arquivo: ${file} (não possui data)`);
+    continue;
+  }
+
   commands.push(command.data.toJSON());
 }
+
+console.log('[DEPLOY] Registrando comandos...');
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
   try {
-    console.log('Registrando comandos...');
-
     await rest.put(
       Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
       { body: commands }
     );
 
-    console.log('Comandos registrados com sucesso.');
+    console.log('[DEPLOY] Comandos registrados com sucesso!');
   } catch (error) {
     console.error(error);
   }

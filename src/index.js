@@ -1,9 +1,10 @@
-require('dotenv').config(); 
-const { Client, GatewayIntentBits, Collection, EmbedBuilder } = require('discord.js');
+require('dotenv').config();
+const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const cron = require('node-cron');
 const db = require('./database/db.js');
+const { anunciarRankingSemanal, anunciarRankingMensal } = require('./utils/rankingAnnouncements.js');
 
 const CANAL_RANKING = '1461496157594189864';
 
@@ -31,7 +32,7 @@ client.once('ready', () => {
   console.log(`Bot logado como ${client.user.tag}`);
 });
 
-// Processar comandos
+// Handler de comandos
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -46,26 +47,22 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-/*
-=====================================
- CRON: DOMINGO 23:55 (BR -03:00)
-=====================================
-Railway usa UTC, então:
-23:55 BR = 02:55 UTC segunda
-=====================================
-*/
 
+/*
+==========================================
+ CRON: SOMA SEMANAL → MENSAL + RESET
+ Domingo 23:55 BR (-03)
+ UTC = 02:55 segunda
+==========================================
+*/
 cron.schedule('55 2 * * 1', async () => {
-  console.log('[CRON] Somando semanal → mensal + reset semanal');
+  console.log('[CRON] Execução semanal iniciada.');
 
   db.all(`SELECT user_id, cogumelo, semente FROM users_farm`, [], (err, rows) => {
-    if (err) {
-      console.error('Erro ao ler dados semanais:', err);
-      return;
-    }
+    if (err) return console.error('Erro ao ler weekly:', err);
 
     if (!rows || rows.length === 0) {
-      console.log('[CRON] Sem dados semanais para somar.');
+      console.log('[CRON] Nenhum registro semanal para somar.');
       return;
     }
 
@@ -76,49 +73,34 @@ cron.schedule('55 2 * * 1', async () => {
          ON CONFLICT(user_id) DO UPDATE SET
            cogumelo = cogumelo + excluded.cogumelo,
            semente = semente + excluded.semente`,
-        [r.user_id, r.cogumelo, r.semente],
-        err => err && console.error('Erro ao atualizar mensal:', err)
+        [r.user_id, r.cogumelo, r.semente]
       );
     });
 
-    // Reset semanal
     db.run(`UPDATE users_farm SET cogumelo = 0, semente = 0`, [], err => {
-      if (err) {
-        console.error('Erro ao resetar semanal:', err);
-      } else {
-        console.log('[CRON] Reset semanal concluído.');
-      }
+      if (err) return console.error('Erro ao resetar semanal:', err);
+      console.log('[CRON] Semanal resetado.');
+      anunciarRankingSemanal(client, CANAL_RANKING);
     });
   });
-
 }, {
   timezone: 'America/Sao_Paulo'
 });
 
 /*
-=====================================
- CRON: INÍCIO DO MÊS (00:00 BR)
-=====================================
-BR 00:00 = UTC 03:00
-=====================================
+==========================================
+ CRON: RESET MENSAL + ANÚNCIO
+ Primeiro dia do mês 00:10 BR
+==========================================
 */
+cron.schedule('10 3 1 * *', async () => {
+  console.log('[CRON] Execução mensal iniciada.');
 
-cron.schedule('0 3 1 * *', async () => {
-  console.log('[CRON] Reset mensal iniciado');
+  anunciarRankingMensal(client, CANAL_RANKING);
 
-  // Aqui enviaremos o Embed mensal
-  const canal = await client.channels.fetch(CANAL_RANKING).catch(() => null);
-  if (canal) {
-    canal.send({ content: 'Ranking Mensal finalizado! (aqui você coloca o embed depois)' });
-  }
-
-  // Reset mensal
   db.run(`UPDATE users_farm_monthly SET cogumelo = 0, semente = 0`, [], err => {
-    if (err) {
-      console.error('Erro ao resetar mensal:', err);
-    } else {
-      console.log('[CRON] Reset mensal concluído.');
-    }
+    if (err) return console.error('Erro ao resetar mensal:', err);
+    console.log('[CRON] Mensal resetado.');
   });
 
 }, {
