@@ -21,15 +21,24 @@ module.exports = {
         return interaction.reply('Ainda não existem registros no ranking semanal.');
       }
 
-      let texto = rows.map((r, i) =>
-        `#${i+1} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`
-      ).join('\n');
+      let texto = rows.map((r, i) => {
+        let pos = i + 1;
+        let icon;
+
+        if (pos === 1) icon = ':crown:';
+        else if (pos === 2) icon = ':second_place:';
+        else if (pos === 3) icon = ':third_place:';
+        else icon = '•';
+
+        return `${icon} **#${pos}** <@${r.user_id}> — Cogumelos: **${r.cogumelo}** | Sementes: **${r.semente}**`;
+      }).join('\n');
 
       const embed = new EmbedBuilder()
-        .setTitle('Ranking Semanal')
+        .setTitle('RANKING SEMANAL')
         .setDescription(texto)
-        .setColor('#2ecc71')
-        .setTimestamp();
+        .setColor('#e67e22')
+        .setTimestamp()
+        .setFooter({ text: 'Atualizado automaticamente • Ranking Semanal' });
 
       await interaction.reply({ embeds: [embed] });
     });
