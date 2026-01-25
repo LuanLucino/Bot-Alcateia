@@ -57,7 +57,12 @@ async function anunciarRankingMensal(client, canalId) {
   });
 }
 
-module.exports = {
-  anunciarRankingSemanal,
-  anunciarRankingMensal
+module.exports = function rankingAnnouncements(client) {
+  console.log('[RANKING] Módulo de anúncios iniciado (placeholder)');
+  
+  // No futuro você coloca aqui:
+  // - cron ou agendamentos
+  // - leitura de DB
+  // - envio ao Discord
 };
+
