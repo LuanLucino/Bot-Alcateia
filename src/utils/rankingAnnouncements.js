@@ -1,68 +1,84 @@
-const { EmbedBuilder } = require('discord.js');
 const db = require('../database/db.js');
+const { EmbedBuilder } = require('discord.js');
+const cron = require('node-cron');
 
-async function anunciarRankingSemanal(client, canalId) {
-  const canal = await client.channels.fetch(canalId).catch(() => null);
-  if (!canal) return;
-
-  db.all(`
-    SELECT user_id, cogumelo, semente
-    FROM users_farm_monthly
-    ORDER BY cogumelo DESC, semente DESC
-  `, [], async (err, rows) => {
-    if (err || !rows || rows.length === 0) {
-      canal.send('Fechamento semanal concluído, porém sem registros válidos.');
-      return;
-    }
-
-    let texto = rows.map((r, i) =>
-      `#${i+1} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`
-    ).join('\n');
-
-    const embed = new EmbedBuilder()
-      .setTitle('Fechamento Semanal')
-      .setDescription(texto)
-      .setColor('#9b59b6')
-      .setTimestamp();
-
-    canal.send({ embeds: [embed] });
-  });
-}
-
-async function anunciarRankingMensal(client, canalId) {
-  const canal = await client.channels.fetch(canalId).catch(() => null);
-  if (!canal) return;
-
-  db.all(`
-    SELECT user_id, cogumelo, semente
-    FROM users_farm_monthly
-    ORDER BY cogumelo DESC, semente DESC
-  `, [], async (err, rows) => {
-    if (err || !rows || rows.length === 0) {
-      canal.send('Fechamento mensal concluído, porém sem registros para exibir.');
-      return;
-    }
-
-    let texto = rows.map((r, i) =>
-      `#${i+1} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`
-    ).join('\n');
-
-    const embed = new EmbedBuilder()
-      .setTitle('Fechamento Mensal')
-      .setDescription(texto)
-      .setColor('#e67e22')
-      .setTimestamp();
-
-    canal.send({ embeds: [embed] });
-  });
-}
+// CONFIGURAÇÕES
+const CHANNEL_ID = '1461496157594189864'; // Exemplo: '123456789012345678'
 
 module.exports = function rankingAnnouncements(client) {
-  console.log('[RANKING] Módulo de anúncios iniciado (placeholder)');
-  
-  // No futuro você coloca aqui:
-  // - cron ou agendamentos
-  // - leitura de DB
-  // - envio ao Discord
+  console.log('[RANKING] Módulo de anúncios carregado');
+
+  // Ranking semanal - todo domingo às 20:00 (horário BR)
+  cron.schedule('0 20 * * 0', async () => {
+    console.log('[RANKING] Enviando ranking semanal...');
+    sendWeeklyRanking(client);
+  }, {
+    timezone: 'America/Sao_Paulo'
+  });
+
+  // Ranking mensal - dia 1 às 20:00
+  cron.schedule('0 20 1 * *', async () => {
+    console.log('[RANKING] Enviando ranking mensal...');
+    sendMonthlyRanking(client);
+  }, {
+    timezone: 'America/Sao_Paulo'
+  });
 };
 
+async function sendWeeklyRanking(client) {
+  const channel = client.channels.cache.get(CHANNEL_ID);
+  if (!channel) return console.error('[RANKING] Canal semanal não encontrado');
+
+  db.all(`
+    SELECT user_id, cogumelo, semente
+    FROM users_farm
+    ORDER BY cogumelo DESC, semente DESC
+  `, [], async (err, rows) => {
+    if (err) return console.error(err);
+
+    if (!rows || rows.length === 0) {
+      return channel.send('Nenhum registro semanal para exibir.');
+    }
+
+    let texto = rows.map((r, i) =>
+      `#${i+1} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`
+    ).join('\n');
+
+    const embed = new EmbedBuilder()
+      .setTitle('Ranking Semanal')
+      .setDescription(texto)
+      .setColor('#2ecc71')
+      .setTimestamp();
+
+    await channel.send({ embeds: [embed] });
+  });
+}
+
+async function sendMonthlyRanking(client) {
+  const channel = client.channels.cache.get(CHANNEL_ID);
+  if (!channel) return console.error('[RANKING] Canal mensal não encontrado');
+
+  db.all(`
+    SELECT user_id, cogumelo, semente
+    FROM users_farm_monthly
+    ORDER BY cogumelo DESC, semente DESC
+  `, [], async (err, rows) => {
+    if (err) return console.error(err);
+
+    if (!rows || rows.length === 0) {
+      return channel.send('Nenhum registro mensal para exibir.');
+    }
+
+    let texto = rows.map((r, i) =>
+      `#${i+1} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`
+    ).join('\n');
+
+    const embed = new EmbedBuilder()
+      .setTitle('Ranking Mensal')
+      .setDescription(texto)
+      .setColor('#3498db')
+      .setTimestamp();
+
+    await channel.send({ embeds: [embed] });
+  });
+}
