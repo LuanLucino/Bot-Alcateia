@@ -8,8 +8,8 @@ const CHANNEL_ID = '1461496157594189864'; // Exemplo
 module.exports = function rankingAnnouncements(client) {
   console.log('[RANKING] Módulo de anúncios carregado');
 
-  // Ranking semanal - todo domingo às 20:00 (horário BR)
-  cron.schedule('0 20 * * 0', async () => {
+  // Ranking semanal - todo domingo às 19:15 (horário BR)
+  cron.schedule('15 19 * * 0', async () => {
     console.log('[RANKING] Enviando ranking semanal...');
     sendWeeklyRanking(client);
   }, { timezone: 'America/Sao_Paulo' });
