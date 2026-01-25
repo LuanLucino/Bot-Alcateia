@@ -1,11 +1,10 @@
-require('dotenv').config();
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+require('dotenv').config(); 
+const { Client, GatewayIntentBits, Collection, EmbedBuilder } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const cron = require('node-cron');
 const db = require('./database/db.js');
 
-// ID do canal onde o ranking será postado (se necessário futuramente)
 const CANAL_RANKING = '1461496157594189864';
 
 const client = new Client({
@@ -18,10 +17,7 @@ const client = new Client({
 
 client.commands = new Collection();
 
-// =========================================================
-// Carregar comandos dinâmicos da pasta /commands
-// =========================================================
-
+// Carregar comandos
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
@@ -31,18 +27,11 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
-// =========================================================
-// Evento: bot online
-// =========================================================
-
 client.once('ready', () => {
   console.log(`Bot logado como ${client.user.tag}`);
 });
 
-// =========================================================
-// Evento: execução de comandos
-// =========================================================
-
+// Processar comandos
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -57,38 +46,83 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-// =========================================================
-// CRON - EXECUÇÃO AUTOMÁTICA SEMANAL
-// =========================================================
-//
-// SUA REQUISIÇÃO:
-// "Todo domingo 23:55 BR"
-//
-// Conversão:
-// - Brasil geralmente UTC-3
-// - Logo 23:55 BR → 02:55 UTC da SEGUNDA
-// - Cron no Node usa UTC
-//
-// Cron para: 02:55 UTC toda segunda-feira
-//
-// Formato: min hora dia mes diaSemana
-// Ex.: 55 2 * * 1
-//
-// =========================================================
+/*
+=====================================
+ CRON: DOMINGO 23:55 (BR -03:00)
+=====================================
+Railway usa UTC, então:
+23:55 BR = 02:55 UTC segunda
+=====================================
+*/
 
 cron.schedule('55 2 * * 1', async () => {
-  console.log('[CRON] Executando tarefa semanal equivalente a domingo 23:55 BR...');
+  console.log('[CRON] Somando semanal → mensal + reset semanal');
 
-  // Aqui futuramente entra:
-  // - somar semanal → mensal
-  // - reset semanal
+  db.all(`SELECT user_id, cogumelo, semente FROM users_farm`, [], (err, rows) => {
+    if (err) {
+      console.error('Erro ao ler dados semanais:', err);
+      return;
+    }
+
+    if (!rows || rows.length === 0) {
+      console.log('[CRON] Sem dados semanais para somar.');
+      return;
+    }
+
+    rows.forEach(r => {
+      db.run(
+        `INSERT INTO users_farm_monthly (user_id, cogumelo, semente)
+         VALUES (?, ?, ?)
+         ON CONFLICT(user_id) DO UPDATE SET
+           cogumelo = cogumelo + excluded.cogumelo,
+           semente = semente + excluded.semente`,
+        [r.user_id, r.cogumelo, r.semente],
+        err => err && console.error('Erro ao atualizar mensal:', err)
+      );
+    });
+
+    // Reset semanal
+    db.run(`UPDATE users_farm SET cogumelo = 0, semente = 0`, [], err => {
+      if (err) {
+        console.error('Erro ao resetar semanal:', err);
+      } else {
+        console.log('[CRON] Reset semanal concluído.');
+      }
+    });
+  });
 
 }, {
-  scheduled: true
+  timezone: 'America/Sao_Paulo'
 });
 
-// =========================================================
-// LOGIN DO BOT
-// =========================================================
+/*
+=====================================
+ CRON: INÍCIO DO MÊS (00:00 BR)
+=====================================
+BR 00:00 = UTC 03:00
+=====================================
+*/
+
+cron.schedule('0 3 1 * *', async () => {
+  console.log('[CRON] Reset mensal iniciado');
+
+  // Aqui enviaremos o Embed mensal
+  const canal = await client.channels.fetch(CANAL_RANKING).catch(() => null);
+  if (canal) {
+    canal.send({ content: 'Ranking Mensal finalizado! (aqui você coloca o embed depois)' });
+  }
+
+  // Reset mensal
+  db.run(`UPDATE users_farm_monthly SET cogumelo = 0, semente = 0`, [], err => {
+    if (err) {
+      console.error('Erro ao resetar mensal:', err);
+    } else {
+      console.log('[CRON] Reset mensal concluído.');
+    }
+  });
+
+}, {
+  timezone: 'America/Sao_Paulo'
+});
 
 client.login(process.env.TOKEN);
