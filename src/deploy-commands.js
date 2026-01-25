@@ -18,9 +18,10 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
   try {
     console.log('Registrando comandos...');
     await rest.put(
-      Routes.applicationCommands('1461499864406949920', '1423500265855778941'),
-      { body: commands }
+      Routes.applicationGuildCommands('1461499864406949920', '1423500265855778941'),
+        { body: commands }
     );
+
     console.log('Comandos registrados.');
   } catch (error) {
     console.error(error);
