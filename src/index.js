@@ -1,110 +1,72 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
-const cron = require('node-cron');
-const db = require('./database/db.js');
-const { anunciarRankingSemanal, anunciarRankingMensal } = require('./utils/rankingAnnouncements.js');
+const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
+const path = require('path');
+const fs = require('fs');
 
-const CANAL_RANKING = '1461496157594189864';
+// Utils
+const rankingAnnouncements = require('./utils/rankingAnnouncements.js');
 
+// Client
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.MessageContent
+  ],
+  partials: [
+    Partials.User,
+    Partials.GuildMember,
+    Partials.Message,
+    Partials.Channel
   ]
 });
 
+// Carrega comandos
 client.commands = new Collection();
-
-// Carregar comandos
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
   const filePath = path.join(commandsPath, file);
   const command = require(filePath);
-  client.commands.set(command.data.name, command);
+  if ('data' in command && 'execute' in command) {
+    client.commands.set(command.data.name, command);
+    console.log(`[COMMAND] Carregado: ${command.data.name}`);
+  } else {
+    console.log(`[AVISO] Comando ${file} está faltando "data" ou "execute"`);
+  }
 }
 
-client.once('ready', () => {
-  console.log(`Bot logado como ${client.user.tag}`);
+// Quando o bot estiver online
+client.once('ready', async () => {
+  console.log(`[ONLINE] Bot logado como: ${client.user.tag}`);
+
+  // Inicia o anúncio do ranking (CRON)
+  rankingAnnouncements(client);
 });
 
-// Handler de comandos
-client.on('interactionCreate', async interaction => {
+// Listener de comandos slash
+client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
-  if (!command) return;
+  if (!command) {
+    return interaction.reply({ content: 'Comando não encontrado.', ephemeral: true });
+  }
 
   try {
-    await command.execute(interaction);
+    await command.execute(interaction, client);
   } catch (error) {
     console.error(error);
-    await interaction.reply({ content: 'Erro ao executar comando.', ephemeral: true });
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({ content: 'Erro ao executar o comando.', ephemeral: true });
+    } else {
+      await interaction.reply({ content: 'Erro ao executar o comando.', ephemeral: true });
+    }
   }
 });
 
-
-/*
-==========================================
- CRON: SOMA SEMANAL → MENSAL + RESET
- Domingo 23:55 BR (-03)
- UTC = 02:55 segunda
-==========================================
-*/
-cron.schedule('55 2 * * 1', async () => {
-  console.log('[CRON] Execução semanal iniciada.');
-
-  db.all(`SELECT user_id, cogumelo, semente FROM users_farm`, [], (err, rows) => {
-    if (err) return console.error('Erro ao ler weekly:', err);
-
-    if (!rows || rows.length === 0) {
-      console.log('[CRON] Nenhum registro semanal para somar.');
-      return;
-    }
-
-    rows.forEach(r => {
-      db.run(
-        `INSERT INTO users_farm_monthly (user_id, cogumelo, semente)
-         VALUES (?, ?, ?)
-         ON CONFLICT(user_id) DO UPDATE SET
-           cogumelo = cogumelo + excluded.cogumelo,
-           semente = semente + excluded.semente`,
-        [r.user_id, r.cogumelo, r.semente]
-      );
-    });
-
-    db.run(`UPDATE users_farm SET cogumelo = 0, semente = 0`, [], err => {
-      if (err) return console.error('Erro ao resetar semanal:', err);
-      console.log('[CRON] Semanal resetado.');
-      anunciarRankingSemanal(client, CANAL_RANKING);
-    });
-  });
-}, {
-  timezone: 'America/Sao_Paulo'
-});
-
-/*
-==========================================
- CRON: RESET MENSAL + ANÚNCIO
- Primeiro dia do mês 00:10 BR
-==========================================
-*/
-cron.schedule('10 3 1 * *', async () => {
-  console.log('[CRON] Execução mensal iniciada.');
-
-  anunciarRankingMensal(client, CANAL_RANKING);
-
-  db.run(`UPDATE users_farm_monthly SET cogumelo = 0, semente = 0`, [], err => {
-    if (err) return console.error('Erro ao resetar mensal:', err);
-    console.log('[CRON] Mensal resetado.');
-  });
-
-}, {
-  timezone: 'America/Sao_Paulo'
-});
-
+// Login
 client.login(process.env.TOKEN);
