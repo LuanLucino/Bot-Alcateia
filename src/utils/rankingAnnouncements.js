@@ -3,7 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const cron = require('node-cron');
 
 // CONFIGURAÇÕES
-const CHANNEL_ID = '1461496157594189864'; // Exemplo: '123456789012345678'
+const CHANNEL_ID = '1461496157594189864'; // Exemplo
 
 module.exports = function rankingAnnouncements(client) {
   console.log('[RANKING] Módulo de anúncios carregado');
@@ -12,17 +12,13 @@ module.exports = function rankingAnnouncements(client) {
   cron.schedule('0 20 * * 0', async () => {
     console.log('[RANKING] Enviando ranking semanal...');
     sendWeeklyRanking(client);
-  }, {
-    timezone: 'America/Sao_Paulo'
-  });
+  }, { timezone: 'America/Sao_Paulo' });
 
   // Ranking mensal - dia 1 às 20:00
   cron.schedule('0 20 1 * *', async () => {
     console.log('[RANKING] Enviando ranking mensal...');
     sendMonthlyRanking(client);
-  }, {
-    timezone: 'America/Sao_Paulo'
-  });
+  }, { timezone: 'America/Sao_Paulo' });
 };
 
 async function sendWeeklyRanking(client) {
@@ -40,9 +36,16 @@ async function sendWeeklyRanking(client) {
       return channel.send('Nenhum registro semanal para exibir.');
     }
 
-    let texto = rows.map((r, i) =>
-      `#${i+1} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`
-    ).join('\n');
+    let texto = "";
+    const medalhas = ["🥇", "🥈", "🥉"];
+
+    rows.forEach((r, i) => {
+      if (i < 3) {
+        texto += `${medalhas[i]} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**\n`;
+      } else {
+        texto += `${i+1}. <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**\n`;
+      }
+    });
 
     const embed = new EmbedBuilder()
       .setTitle('Ranking Semanal')
@@ -69,9 +72,16 @@ async function sendMonthlyRanking(client) {
       return channel.send('Nenhum registro mensal para exibir.');
     }
 
-    let texto = rows.map((r, i) =>
-      `#${i+1} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`
-    ).join('\n');
+    let texto = "";
+    const medalhas = ["🥇", "🥈", "🥉"];
+
+    rows.forEach((r, i) => {
+      if (i < 3) {
+        texto += `${medalhas[i]} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**\n`;
+      } else {
+        texto += `${i+1}. <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**\n`;
+      }
+    });
 
     const embed = new EmbedBuilder()
       .setTitle('Ranking Mensal')
