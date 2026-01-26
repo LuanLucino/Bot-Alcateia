@@ -15,6 +15,10 @@ module.exports = {
     const userId = interaction.user.id;
     const valor = interaction.options.getNumber('valor');
 
+    if (valor === null || valor === undefined || isNaN(valor)) {
+      return interaction.reply({ content: 'Valor inválido.', ephemeral: true });
+    }
+
     db.run(
       `INSERT INTO users_farm (user_id, valor)
       VALUES (?, ?)
@@ -26,7 +30,7 @@ module.exports = {
           console.error(err);
           return interaction.reply({ content: 'Erro ao registrar seu farm.', ephemeral: true });
         }
-        return interaction.reply(`Registrado: R$ ${valor.toFixed(2)} no ranking semanal.`);
+        return interaction.reply(`Registrado: R$ ${Number(valor).toFixed(2)} no ranking semanal.`);
       }
     );
   }
