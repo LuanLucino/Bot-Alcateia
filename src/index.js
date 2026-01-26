@@ -68,8 +68,9 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-console.log(`Client ID: ${process.env.CLIENT_ID}`);
-console.log(`Guild ID: ${process.env.GUILD_ID}`);
+const token = process.env.DISCORD_TOKEN || process.env.TOKEN;
+client.login(token);
+
 
 
 // Login
