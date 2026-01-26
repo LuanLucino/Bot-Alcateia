@@ -8,9 +8,10 @@ module.exports = {
 
   async execute(interaction) {
     db.all(`
-      SELECT user_id, cogumelo, semente
+      SELECT user_id, cogumelo, semente,
+      (cogumelo + semente) AS total
       FROM users_farm_monthly
-      ORDER BY cogumelo DESC, semente DESC
+      ORDER BY total DESC
     `, [], async (err, rows) => {
       if (err) {
         console.error(err);
@@ -22,15 +23,9 @@ module.exports = {
       }
 
       let texto = rows.map((r, i) => {
-        let pos = i + 1;
-        let icon;
-
-        if (pos === 1) icon = ':crown:';
-        else if (pos === 2) icon = ':second_place:';
-        else if (pos === 3) icon = ':third_place:';
-        else icon = '•';
-
-        return `${icon} **#${pos}** <@${r.user_id}> — Cogumelos: **${r.cogumelo}** | Sementes: **${r.semente}**`;
+        const pos = i + 1;
+        const medal = pos === 1 ? ':crown:' : pos === 2 ? ':second_place:' : pos === 3 ? ':third_place:' : `**#${pos}**`;
+        return `${medal} <@${r.user_id}> — Cog: **${r.cogumelo}** | Sem: **${r.semente}** | Total: **${r.total}**`;
       }).join('\n');
 
       const embed = new EmbedBuilder()
@@ -38,7 +33,7 @@ module.exports = {
         .setDescription(texto)
         .setColor('#9b59b6')
         .setTimestamp()
-        .setFooter({ text: 'Atualizado automaticamente • Ranking Mensal' });
+        .setFooter({ text: 'Ranking mensal' });
 
       await interaction.reply({ embeds: [embed] });
     });

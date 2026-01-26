@@ -1,53 +1,55 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const db = require('../database/db.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('farm')
-    .setDescription('Registra cogumelo + semente com imagem.')
-    .addNumberOption(opt =>
-      opt.setName('cogumelo_azul')
-        .setDescription('Quantidade de cogumelo azul')
+    .setDescription('Registra sua farm semanal.')
+    .addIntegerOption(opt =>
+      opt.setName('cogumelo')
+        .setDescription('Quantidade de cogumelos farmados')
         .setRequired(true)
     )
-    .addNumberOption(opt =>
-      opt.setName('semente_azul')
-        .setDescription('Quantidade de semente azul')
+    .addIntegerOption(opt =>
+      opt.setName('semente')
+        .setDescription('Quantidade de sementes farmadas')
         .setRequired(true)
     )
     .addAttachmentOption(opt =>
       opt.setName('imagem')
-        .setDescription('Imagem do farm')
-        .setRequired(true)
+        .setDescription('Print do farm (opcional)')
+        .setRequired(false)
     ),
 
   async execute(interaction) {
     const userId = interaction.user.id;
-    const cog = interaction.options.getNumber('cogumelo_azul');
-    const sem = interaction.options.getNumber('semente_azul');
+    const cog = interaction.options.getInteger('cogumelo');
+    const sem = interaction.options.getInteger('semente');
     const img = interaction.options.getAttachment('imagem');
 
-    db.run(
-      `INSERT INTO farm_records (user_id, cogumelo_azul, semente_azul, data)
-       VALUES (?, ?, ?, ?)`,
-      [userId, cog, sem, Date.now()],
-      (err) => {
-        if (err) {
-          console.error(err);
-          return interaction.reply({ content: 'Erro ao registrar o farm.', ephemeral: true });
-        }
-
-        const embed = new EmbedBuilder()
-          .setTitle('Farm Registrado')
-          .addFields(
-            { name: 'Cogumelo Azul', value: `${cog}`, inline: true },
-            { name: 'Semente Azul', value: `${sem}`, inline: true }
-          )
-          .setImage(img.url)
-          .setColor('Blue');
-
-        interaction.reply({ embeds: [embed] });
+    db.run(`
+      INSERT INTO users_farm (user_id, cogumelo, semente)
+      VALUES (?, ?, ?)
+      ON CONFLICT(user_id)
+      DO UPDATE SET
+        cogumelo = cogumelo + ?,
+        semente = semente + ?
+    `, [userId, cog, sem, cog, sem], err => {
+      if (err) {
+        console.error(err);
+        return interaction.reply({ content: 'Erro ao registrar.', ephemeral: true });
       }
-    );
+
+      let msg = `Registrado com sucesso.\nCogumelos: **${cog}**\nSementes: **${sem}**`;
+      
+      if (img) {
+        return interaction.reply({
+          content: msg,
+          files: [img.url]
+        });
+      } else {
+        return interaction.reply(msg);
+      }
+    });
   }
 };
