@@ -1,67 +1,54 @@
-const { SlashCommandBuilder } = require('discord.js');
-const db = require('../db');
-
-function formatRanking(rows) {
-  if (rows.length === 0) return 'Nenhum registro encontrado.';
-
-  const medalhas = ['🥇', '🥈', '🥉'];
-
-  return rows.map((r, i) => {
-    const medalha = medalhas[i] || '•';
-    return `${medalha} <@${r.user_id}> | Cogumelo: ${r.total_cog} | Semente: ${r.total_sem}`;
-  }).join('\n');
-}
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const db = require('../database/db.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('ranking')
-    .setDescription('Consultar rankings')
-    .addStringOption(opt =>
-      opt.setName('tipo')
-        .setDescription('Escolha o tipo de ranking')
-        .setRequired(true)
-        .addChoices(
-          { name: 'Semanal', value: 'semanal' },
-          { name: 'Mensal', value: 'mensal' }
-        )),
+    .setDescription('Mostra o ranking semanal de farm.'),
 
   async execute(interaction) {
-    const tipo = interaction.options.getString('tipo');
-    const now = new Date();
-    let inicio;
-
-    if (tipo === 'semanal') {
-      const day = now.getDay();
-      inicio = new Date(now);
-      inicio.setDate(now.getDate() - day);
-      inicio.setHours(0,0,0,0);
-    } else {
-      inicio = new Date(now.getFullYear(), now.getMonth(), 1, 0,0,0,0);
-    }
+    await interaction.deferReply();
 
     db.all(`
-      SELECT user_id,
-      SUM(cogumelo_azul) AS total_cog,
-      SUM(semente_azul) AS total_sem
-      FROM farm_records
-      WHERE data >= ?
-      GROUP BY user_id
-      ORDER BY total_cog DESC, total_sem DESC
-    `, [inicio.getTime()], (err, rows) => {
-
+      SELECT user_id, cogumelo, semente,
+        (cogumelo + semente) AS total
+      FROM users_farm
+      ORDER BY total DESC
+    `, [], async (err, rows) => {
       if (err) {
         console.error(err);
-        return interaction.reply('Erro ao consultar ranking.');
+        return interaction.editReply('Erro ao consultar ranking semanal.');
       }
 
-      const embed = {
-        title: `Ranking ${tipo === 'semanal' ? 'Semanal' : 'Mensal'}`,
-        description: formatRanking(rows),
-        color: 0xffcc00,
-        timestamp: new Date()
-      };
+      if (!rows || rows.length === 0) {
+        return interaction.editReply('Nenhum dado registrado esta semana.');
+      }
 
-      interaction.reply({ embeds: [embed] });
+      const top3 = rows.slice(0, 3);
+      const resto = rows.slice(3);
+
+      let descTop = '';
+      top3.forEach((r, i) => {
+        const medal = i === 0 ? '🏆' : i === 1 ? '🥈' : '🥉';
+        descTop += `${medal} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**\n`;
+      });
+
+      let descRest = '';
+      resto.forEach((r, i) => {
+        descRest += `**${i + 4}.** <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**\n`;
+      });
+
+      const embed = new EmbedBuilder()
+        .setTitle('RANKING SEMANAL')
+        .setColor('#3498db')
+        .addFields(
+          { name: 'Top 3', value: descTop || 'Nenhum' },
+          { name: 'Demais Colocados', value: descRest || 'Nenhum' }
+        )
+        .setTimestamp()
+        .setFooter({ text: 'Ranking semanal atualizado' });
+
+      return interaction.editReply({ embeds: [embed] });
     });
   }
 };
