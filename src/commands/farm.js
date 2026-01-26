@@ -1,33 +1,36 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../database/db.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('farm')
     .setDescription('Registrar farm semanal.')
-    .addStringOption(opt =>
+    .addIntegerOption(opt =>
       opt.setName('cogumelo')
         .setDescription('Quantidade de cogumelos farmados')
         .setRequired(true)
     )
-    .addStringOption(opt =>
+    .addIntegerOption(opt =>
       opt.setName('semente')
         .setDescription('Quantidade de sementes farmadas')
         .setRequired(true)
     )
     .addAttachmentOption(opt =>
       opt.setName('imagem')
-        .setDescription('Print do farm (opcional)')
-        .setRequired(false)
+        .setDescription('Print do farm (obrigatório)')
+        .setRequired(true)
     ),
 
   async execute(interaction) {
     const userId = interaction.user.id;
-    const cog = interaction.options.getString('cogumelo');
-    const sem = interaction.options.getString('semente');
+    const cog = interaction.options.getInteger('cogumelo');
+    const sem = interaction.options.getInteger('semente');
     const img = interaction.options.getAttachment('imagem');
 
-    // Salvar no ranking semanal
+    if (!img) {
+      return interaction.reply({ content: 'É obrigatório enviar a imagem do farm.', ephemeral: true });
+    }
+
     db.run(`
       INSERT INTO users_farm (user_id, cogumelo, semente)
       VALUES (?, ?, ?)
@@ -40,19 +43,24 @@ module.exports = {
     err => {
       if (err) {
         console.error(err);
-        return interaction.reply({ content: 'Erro ao registrar.', ephemeral: true });
+        return interaction.reply({ content: 'Erro ao registrar o farm.', ephemeral: true });
       }
 
-      let texto = `Farm registrado com sucesso.\nCogumelos: **${cog}**\nSementes: **${sem}**`;
+      const embed = new EmbedBuilder()
+        .setTitle('Farm Registrado')
+        .setColor('#2ecc71')
+        .setDescription(`O farm foi registrado com sucesso.`)
+        .addFields(
+          { name: 'Cogumelos 🍄', value: `\`${cog}\``, inline: true },
+          { name: 'Sementes 🌱', value: `\`${sem}\``, inline: true }
+        )
+        .setFooter({ text: `Usuário: ${interaction.user.username}` })
+        .setTimestamp();
 
-      if (img) {
-        return interaction.reply({
-          content: texto,
-          files: [img.url]
-        });
-      } else {
-        return interaction.reply(texto);
-      }
+      return interaction.reply({
+        embeds: [embed],
+        files: [img.url]
+      });
     });
   }
 };
