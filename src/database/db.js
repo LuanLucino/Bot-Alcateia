@@ -41,6 +41,14 @@ db.serialize(() => {
     )
   `);
 
+  db.run(`
+  CREATE TABLE IF NOT EXISTS users_farm_monthly (
+    user_id TEXT PRIMARY KEY,
+    valor REAL DEFAULT 0
+  )
+`);
+
+
 });
 
 module.exports = db;

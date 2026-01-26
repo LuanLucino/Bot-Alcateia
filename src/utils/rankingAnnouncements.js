@@ -9,10 +9,9 @@ const CHANNEL_ID = process.env.CHANNEL_ID;
 module.exports = function rankingAnnouncements(client) {
   console.log('[RANKING] Módulo carregado.');
 
-  // Delay para o bot carregar o cache
   setTimeout(() => {
 
-    // Semanal: domingo 22:00
+    // Semanal: domingo 23:58
     cron.schedule('58 23 * * 0', async () => {
       console.log('[RANKING] Executando semanal...');
       await processWeekly(client);
@@ -22,7 +21,6 @@ module.exports = function rankingAnnouncements(client) {
     cron.schedule('59 23 28-31 * *', async () => {
       const today = new Date();
       const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-
       if (today.getDate() === lastDay) {
         console.log('[RANKING] Executando mensal...');
         await processMonthly(client);
@@ -36,7 +34,13 @@ async function processWeekly(client) {
   const channel = client.channels.cache.get(CHANNEL_ID);
   if (!channel) return console.error('[RANKING] Canal não encontrado');
 
-  db.all(`SELECT user_id, valor FROM users_farm ORDER BY valor DESC`, [], async (err, rows) => {
+  db.all(`
+    SELECT user_id, 
+           SUM(cogumelo_azul + semente_azul) AS valor 
+    FROM farm_records 
+    GROUP BY user_id 
+    ORDER BY valor DESC
+  `, [], async (err, rows) => {
     if (err) return console.error(err);
 
     if (!rows || rows.length === 0) {
@@ -54,24 +58,23 @@ async function processWeekly(client) {
       `, [r.user_id, r.valor, r.valor]);
     });
 
-    // Gera ranking visual
     const medalhas = ["🥇", "🥈", "🥉"];
-    rows.map((r, i) => {
-    const valor = Number(r.valor) || 0;
-    return `${medalhas[i]} <@${r.user_id}> — R$ **${valor.toFixed(2)}**`;
-}).join("\n");
 
+    const texto = rows.map((r, i) => {
+      const medalha = medalhas[i] || `${i+1}.`;
+      return `${medalha} <@${r.user_id}> — **${r.valor.toFixed(2)}** pontos`;
+    }).join("\n");
 
     const embed = new EmbedBuilder()
       .setTitle('TOP FARM SEMANAL')
-      .setDescription(`Resultado dos maiores agricultores da semana:\n\n${texto}`)
+      .setDescription(`${texto}`)
       .setColor('#27ae60')
       .setTimestamp();
 
     await channel.send({ embeds: [embed] });
 
     // Reset semanal
-    db.run(`DELETE FROM users_farm`);
+    db.run(`DELETE FROM farm_records`);
   });
 }
 
@@ -79,7 +82,11 @@ async function processMonthly(client) {
   const channel = client.channels.cache.get(CHANNEL_ID);
   if (!channel) return console.error('[RANKING] Canal não encontrado');
 
-  db.all(`SELECT user_id, valor FROM users_farm_monthly ORDER BY valor DESC`, [], async (err, rows) => {
+  db.all(`
+    SELECT user_id, valor 
+    FROM users_farm_monthly 
+    ORDER BY valor DESC
+  `, [], async (err, rows) => {
     if (err) return console.error(err);
 
     if (!rows || rows.length === 0) {
@@ -87,15 +94,15 @@ async function processMonthly(client) {
     }
 
     const medalhas = ["🥇", "🥈", "🥉"];
-    const texto = rows.map((r, i) =>
-      (i < 3)
-        ? `${medalhas[i]} <@${r.user_id}> — R$ **${r.valor.toFixed(2)}**`
-        : `${i+1}. <@${r.user_id}> — R$ **${r.valor.toFixed(2)}**`
-    ).join('\n');
+
+    const texto = rows.map((r, i) => {
+      const medalha = medalhas[i] || `${i+1}.`;
+      return `${medalha} <@${r.user_id}> — **${r.valor.toFixed(2)}** pontos`;
+    }).join("\n");
 
     const embed = new EmbedBuilder()
       .setTitle('TOP FARM MENSAL')
-      .setDescription(`Ranking final do mês:\n\n${texto}`)
+      .setDescription(`${texto}`)
       .setColor('#2980b9')
       .setTimestamp();
 
