@@ -1,77 +1,49 @@
 require('dotenv').config();
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
-const path = require('path');
-const fs = require('fs');
-
-// Utils
+const fs = require('node:fs');
+const path = require('node:path');
 const rankingAnnouncements = require('./utils/rankingAnnouncements.js');
 
-// Client
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildVoiceStates,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.GuildMembers
   ],
-  partials: [
-    Partials.User,
-    Partials.GuildMember,
-    Partials.Message,
-    Partials.Channel
-  ]
+  partials: [Partials.User, Partials.Message, Partials.Channel]
 });
 
 // Carrega comandos
 client.commands = new Collection();
 const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'));
 
 for (const file of commandFiles) {
-  const filePath = path.join(commandsPath, file);
-  const command = require(filePath);
-  if ('data' in command && 'execute' in command) {
-    client.commands.set(command.data.name, command);
-    console.log(`[COMMAND] Carregado: ${command.data.name}`);
-  } else {
-    console.log(`[AVISO] Comando ${file} está faltando "data" ou "execute"`);
-  }
+  const cmd = require(path.join(commandsPath, file));
+  client.commands.set(cmd.data.name, cmd);
+  console.log(`[COMMAND] Carregado: ${cmd.data.name}`);
 }
 
-// Quando o bot estiver online
-client.once('ready', async () => {
-  console.log(`[ONLINE] Bot logado como: ${client.user.tag}`);
-
-  // Inicia o anúncio do ranking (CRON)
+// Bot online
+client.once('ready', () => {
+  console.log(`[ONLINE] Logado como ${client.user.tag}`);
   rankingAnnouncements(client);
 });
 
-// Listener de comandos slash
+// Execução slash
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
-  const command = client.commands.get(interaction.commandName);
-  if (!command) {
-    return interaction.reply({ content: 'Comando não encontrado.', ephemeral: true });
-  }
+  const cmd = client.commands.get(interaction.commandName);
+  if (!cmd) return;
 
   try {
-    await command.execute(interaction, client);
+    await cmd.execute(interaction, client);
   } catch (error) {
     console.error(error);
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: 'Erro ao executar o comando.', ephemeral: true });
-    } else {
-      await interaction.reply({ content: 'Erro ao executar o comando.', ephemeral: true });
-    }
+    await interaction.reply({ content: 'Erro ao executar o comando.', ephemeral: true });
   }
 });
 
-const token = process.env.DISCORD_TOKEN || process.env.TOKEN;
-client.login(token);
-
-
-
-// Login
-client.login(process.env.TOKEN);
+client.login(process.env.DISCORD_TOKEN);
