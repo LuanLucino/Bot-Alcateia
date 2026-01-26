@@ -54,12 +54,13 @@ module.exports = {
           { name: 'Cogumelos 🍄', value: `\`${cog}\``, inline: true },
           { name: 'Sementes 🌱', value: `\`${sem}\``, inline: true }
         )
+        .setImage('attachment://farm.png') // Imagem dentro do Embed
         .setFooter({ text: `Usuário: ${interaction.user.username}` })
         .setTimestamp();
 
       return interaction.reply({
         embeds: [embed],
-        files: [img.url]
+        files: [{ attachment: img.url, name: 'farm.png' }]
       });
     });
   }
