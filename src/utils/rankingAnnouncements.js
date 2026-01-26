@@ -11,17 +11,18 @@ module.exports = function rankingAnnouncements(client) {
   // Aguarda cache do Discord
   setTimeout(() => {
 
-    // SEMANAL — Domingo 21:15 (horário BR)
-    cron.schedule('15 21 * * 0', async () => {
-      console.log('[RANKING] Disparando ranking semanal...');
-      sendWeeklyRanking(client);
-    }, { timezone: 'America/Sao_Paulo' });
+    // semanal às 21:15 todo domingo
+cron.schedule('25 21 * * 0', async () => {
+  console.log('[RANKING] Disparando ranking semanal...');
+  sendWeeklyRanking(client);
+}, { timezone: 'America/Sao_Paulo' });
 
-    // MENSAL — Dia 1 às 21:15 (horário BR)
-    cron.schedule('15 21 1 * *', async () => {
-      console.log('[RANKING] Disparando ranking mensal...');
-      sendMonthlyRanking(client);
-    }, { timezone: 'America/Sao_Paulo' });
+// mensal dia 1 às 21:15
+cron.schedule('25 21 1 * *', async () => {
+  console.log('[RANKING] Disparando ranking mensal...');
+  sendMonthlyRanking(client);
+}, { timezone: 'America/Sao_Paulo' });
+
 
   }, 3000);
 };
