@@ -12,7 +12,7 @@ module.exports = function rankingAnnouncements(client) {
   setTimeout(() => {
 
     // Semanal: domingo 23:58
-    cron.schedule('30 00 * * 1', async () => {
+    cron.schedule('13 17 * * 1', async () => {
       console.log('[RANKING] Executando semanal...');
       await processWeekly(client);
     }, { timezone: 'America/Sao_Paulo' });
