@@ -25,7 +25,7 @@ module.exports = {
       let texto = rows.map((r, i) => {
         const pos = i + 1;
         const medal = pos === 1 ? ':crown:' : pos === 2 ? ':second_place:' : pos === 3 ? ':third_place:' : `**#${pos}**`;
-        return `${medal} <@${r.user_id}> — Cog: **${r.cogumelo}** | Sem: **${r.semente}** | Total: **${r.total}**`;
+        return `${medal} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**`;
       }).join('\n');
 
       const embed = new EmbedBuilder()

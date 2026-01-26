@@ -24,19 +24,18 @@ module.exports = {
         return interaction.editReply('Nenhum dado registrado esta semana.');
       }
 
-      // Top 3
       const top3 = rows.slice(0, 3);
       const resto = rows.slice(3);
 
       let descTop = '';
       top3.forEach((r, i) => {
         const medal = i === 0 ? '🏆' : i === 1 ? '🥈' : '🥉';
-        descTop += `${medal} <@${r.user_id}> — Cog: **${r.cogumelo}** | Sem: **${r.semente}** | Total: **${r.total}**\n`;
+        descTop += `${medal} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**\n`;
       });
 
       let descRest = '';
       resto.forEach((r, i) => {
-        descRest += `**${i + 4}.** <@${r.user_id}> — Cog: **${r.cogumelo}** | Sem: **${r.semente}** | Total: **${r.total}**\n`;
+        descRest += `**${i + 4}.** <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**\n`;
       });
 
       const embed = new EmbedBuilder()
