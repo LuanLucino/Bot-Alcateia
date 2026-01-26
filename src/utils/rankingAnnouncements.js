@@ -8,17 +8,22 @@ const CHANNEL_ID = '1461496157594189864'; // Exemplo
 module.exports = function rankingAnnouncements(client) {
   console.log('[RANKING] Módulo de anúncios carregado');
 
-  // Ranking semanal - todo domingo às 19:15 (horário BR)
-  cron.schedule('20 19 * * 0', async () => {
-    console.log('[RANKING] Enviando ranking semanal...');
-    sendWeeklyRanking(client);
-  }, { timezone: 'America/Sao_Paulo' });
+  // Aguarda cache do Discord
+  setTimeout(() => {
 
-  // Ranking mensal - dia 1 às 20:00
-  cron.schedule('0 20 1 * *', async () => {
-    console.log('[RANKING] Enviando ranking mensal...');
-    sendMonthlyRanking(client);
-  }, { timezone: 'America/Sao_Paulo' });
+    // SEMANAL — Domingo 21:15 (horário BR)
+    cron.schedule('15 21 * * 0', async () => {
+      console.log('[RANKING] Disparando ranking semanal...');
+      sendWeeklyRanking(client);
+    }, { timezone: 'America/Sao_Paulo' });
+
+    // MENSAL — Dia 1 às 21:15 (horário BR)
+    cron.schedule('15 21 1 * *', async () => {
+      console.log('[RANKING] Disparando ranking mensal...');
+      sendMonthlyRanking(client);
+    }, { timezone: 'America/Sao_Paulo' });
+
+  }, 3000);
 };
 
 async function sendWeeklyRanking(client) {
@@ -36,24 +41,24 @@ async function sendWeeklyRanking(client) {
       return channel.send('Nenhum registro semanal para exibir.');
     }
 
-    let texto = "";
     const medalhas = ["🥇", "🥈", "🥉"];
-
-    rows.forEach((r, i) => {
+    let texto = rows.map((r, i) => {
       if (i < 3) {
-        texto += `${medalhas[i]} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**\n`;
+        return `${medalhas[i]} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`;
       } else {
-        texto += `${i+1}. <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**\n`;
+        return `${i+1}. <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`;
       }
-    });
+    }).join('\n');
 
     const embed = new EmbedBuilder()
-      .setTitle('Ranking Semanal')
-      .setDescription(texto)
+      .setTitle('T O P  F A R M  S E M A N A L')
+      .setDescription(`Os maiores agricultores da semana estão aqui:\n\n${texto}`)
       .setColor('#2ecc71')
+      .setFooter({ text: 'Ranking atualizado automaticamente' })
       .setTimestamp();
 
     await channel.send({ embeds: [embed] });
+    console.log('[RANKING] Ranking semanal enviado com sucesso.');
   });
 }
 
@@ -72,23 +77,23 @@ async function sendMonthlyRanking(client) {
       return channel.send('Nenhum registro mensal para exibir.');
     }
 
-    let texto = "";
     const medalhas = ["🥇", "🥈", "🥉"];
-
-    rows.forEach((r, i) => {
+    let texto = rows.map((r, i) => {
       if (i < 3) {
-        texto += `${medalhas[i]} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**\n`;
+        return `${medalhas[i]} <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`;
       } else {
-        texto += `${i+1}. <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**\n`;
+        return `${i+1}. <@${r.user_id}> — Cogumelos: **${r.cogumelo}**, Sementes: **${r.semente}**`;
       }
-    });
+    }).join('\n');
 
     const embed = new EmbedBuilder()
-      .setTitle('Ranking Mensal')
-      .setDescription(texto)
+      .setTitle('T O P  F A R M  M E N S A L')
+      .setDescription(`Os maiores agricultores do mês estão aqui:\n\n${texto}`)
       .setColor('#3498db')
+      .setFooter({ text: 'Ranking atualizado automaticamente' })
       .setTimestamp();
 
     await channel.send({ embeds: [embed] });
+    console.log('[RANKING] Ranking mensal enviado com sucesso.');
   });
 }
