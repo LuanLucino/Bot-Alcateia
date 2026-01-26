@@ -1,36 +1,25 @@
 const sqlite3 = require('sqlite3').verbose();
-const path = require('node:path');
-const fs = require('node:fs');
+const fs = require('fs');
 
-// Para Railway
-const dataPath = '/data';
-if (!fs.existsSync(dataPath)) {
-  fs.mkdirSync(dataPath, { recursive: true });
+if (!fs.existsSync('/data')) {
+  fs.mkdirSync('/data', { recursive: true });
 }
 
-const dbPath = path.join(dataPath, 'farm.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Erro ao conectar no banco SQLite:', err);
-  } else {
-    console.log('SQLite conectado em', dbPath);
-  }
+const db = new sqlite3.Database('/data/farm.db', (err) => {
+  if (err) return console.error(err.message);
+  console.log('SQLite conectado em /data/farm.db');
 });
 
-// SEMANAL
-db.run(`
-  CREATE TABLE IF NOT EXISTS users_farm (
-    user_id TEXT PRIMARY KEY,
-    valor REAL DEFAULT 0
-  )
-`);
-
-// MENSAL
-db.run(`
-  CREATE TABLE IF NOT EXISTS users_farm_monthly (
-    user_id TEXT PRIMARY KEY,
-    valor REAL DEFAULT 0
-  )
-`);
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS farm_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      cogumelo_azul REAL DEFAULT 0,
+      semente_azul REAL DEFAULT 0,
+      data INTEGER NOT NULL
+    )
+  `);
+});
 
 module.exports = db;
