@@ -5,7 +5,8 @@ const { REST, Routes } = require('discord.js');
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
-const TOKEN = process.env.DISCORD_TOKEN;
+const DISCORD_TOKEN = process.env.TOKEN;
+
 
 if (!CLIENT_ID || !GUILD_ID || !TOKEN) {
   console.error('[DEPLOY] ERRO: CLIENT_ID, GUILD_ID ou DISCORD_TOKEN não foram encontrados no .env');
