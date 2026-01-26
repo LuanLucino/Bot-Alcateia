@@ -1,10 +1,10 @@
-const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const db = require('../database/db.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('farm')
-    .setDescription('Registra farm com dois produtos.')
+    .setDescription('Registra farm com dois produtos e envia imagem.')
     .addNumberOption(opt =>
       opt.setName('cogumelo_azul')
         .setDescription('Quantidade de cogumelos azuis')
@@ -14,12 +14,18 @@ module.exports = {
       opt.setName('semente_azul')
         .setDescription('Quantidade de sementes azuis')
         .setRequired(true)
+    )
+    .addAttachmentOption(opt =>
+      opt.setName('foto')
+        .setDescription('Imagem referente ao farm')
+        .setRequired(false)
     ),
 
   async execute(interaction) {
     const userId = interaction.user.id;
     const cogumelo = interaction.options.getNumber('cogumelo_azul');
     const semente = interaction.options.getNumber('semente_azul');
+    const foto = interaction.options.getAttachment('foto');
 
     if (
       cogumelo === null || semente === null ||
@@ -28,7 +34,7 @@ module.exports = {
       return interaction.reply({ content: 'Valores inválidos.', ephemeral: true });
     }
 
-    // Exemplo de cálculo final (ajuste conforme quiser)
+    // Ajuste o cálculo conforme sua regra
     const totalValor = (cogumelo * 1.5) + (semente * 2.0);
 
     db.run(
@@ -43,17 +49,20 @@ module.exports = {
           return interaction.reply({ content: 'Erro ao registrar seu farm.', ephemeral: true });
         }
 
-        // Enviar imagem ao final
-        const file = new AttachmentBuilder('./src/assets/farm.png'); // coloque sua imagem neste caminho
+        const texto =
+          `Farm registrado.\n` +
+          `Cogumelos Azuis: **${cogumelo}**\n` +
+          `Sementes Azuis: **${semente}**\n\n` +
+          `Total adicionado ao ranking: **R$ ${totalValor.toFixed(2)}**`;
 
-        return interaction.reply({
-          content:
-            `Farm registrado.\n` +
-            `Cogumelos Azuis: **${cogumelo}**\n` +
-            `Sementes Azuis: **${semente}**\n\n` +
-            `Total adicionado ao ranking: **R$ ${totalValor.toFixed(2)}**`,
-          files: [file]
-        });
+        if (foto) {
+          return interaction.reply({
+            content: texto,
+            files: [foto.url] // apenas envia a foto, não salva
+          });
+        } else {
+          return interaction.reply(texto);
+        }
       }
     );
   }
