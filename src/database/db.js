@@ -11,26 +11,6 @@ const db = new sqlite3.Database('/data/farm.db', (err) => {
 });
 
 db.serialize(() => {
-
-  // Ranking semanal
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users_farm (
-      user_id TEXT PRIMARY KEY,
-      cogumelo INTEGER DEFAULT 0,
-      semente INTEGER DEFAULT 0
-    )
-  `);
-
-  // Ranking mensal
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users_farm_monthly (
-      user_id TEXT PRIMARY KEY,
-      cogumelo INTEGER DEFAULT 0,
-      semente INTEGER DEFAULT 0
-    )
-  `);
-
-  // Histórico bruto (opcional)
   db.run(`
     CREATE TABLE IF NOT EXISTS farm_records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,15 +20,6 @@ db.serialize(() => {
       data INTEGER NOT NULL
     )
   `);
-
-  db.run(`
-  CREATE TABLE IF NOT EXISTS users_farm_monthly (
-    user_id TEXT PRIMARY KEY,
-    valor REAL DEFAULT 0
-  )
-`);
-
-
 });
 
 module.exports = db;
