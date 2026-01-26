@@ -1,66 +1,59 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const db = require('../database/db.js');
+const { SlashCommandBuilder } = require('discord.js');
+const db = require('../db');
+const path = require('path');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('farm')
-    .setDescription('Registrar farm semanal.')
-    .addIntegerOption(opt =>
+    .setDescription('Adicionar valores de cogumelo e semente + imagem')
+    .addNumberOption(opt =>
       opt.setName('cogumelo')
-        .setDescription('Quantidade de cogumelos farmados')
-        .setRequired(true)
-    )
-    .addIntegerOption(opt =>
+        .setDescription('Quantidade de cogumelo')
+        .setRequired(true))
+    .addNumberOption(opt =>
       opt.setName('semente')
-        .setDescription('Quantidade de sementes farmadas')
-        .setRequired(true)
-    )
+        .setDescription('Quantidade de semente')
+        .setRequired(true))
     .addAttachmentOption(opt =>
       opt.setName('imagem')
-        .setDescription('Print do farm (obrigatório)')
-        .setRequired(true)
-    ),
-
+        .setDescription('Upload da imagem')
+        .setRequired(true)),
+    
   async execute(interaction) {
     const userId = interaction.user.id;
-    const cog = interaction.options.getInteger('cogumelo');
-    const sem = interaction.options.getInteger('semente');
-    const img = interaction.options.getAttachment('imagem');
+    const cogumelo = interaction.options.getNumber('cogumelo');
+    const semente = interaction.options.getNumber('semente');
+    const imagem = interaction.options.getAttachment('imagem');
+    const timestamp = Date.now();
 
-    if (!img) {
-      return interaction.reply({ content: 'É obrigatório enviar a imagem do farm.', ephemeral: true });
+    if (!imagem.contentType.startsWith('image/')) {
+      return interaction.reply({ content: 'Envie um arquivo de imagem válido.', ephemeral: true });
     }
 
-    db.run(`
-      INSERT INTO users_farm (user_id, cogumelo, semente)
-      VALUES (?, ?, ?)
-      ON CONFLICT(user_id)
-      DO UPDATE SET
-        cogumelo = cogumelo + ?,
-        semente = semente + ?
-    `,
-    [userId, cog, sem, cog, sem],
-    err => {
-      if (err) {
-        console.error(err);
-        return interaction.reply({ content: 'Erro ao registrar o farm.', ephemeral: true });
+    db.run(
+      `INSERT INTO farm_records (user_id, cogumelo_azul, semente_azul, data)
+       VALUES (?, ?, ?, ?)`,
+      [userId, cogumelo, semente, timestamp],
+      err => {
+        if (err) {
+          console.error('Erro ao salvar DB:', err);
+          return interaction.reply('Erro ao registrar no banco de dados.');
+        }
+
+        const embed = {
+          title: 'Registro de Farm',
+          fields: [
+            { name: 'Cogumelo Azul', value: String(cogumelo), inline: true },
+            { name: 'Semente Azul', value: String(semente), inline: true }
+          ],
+          image: { url: imagem.url },
+          color: 0x0099ff,
+          footer: { text: `Registrado por ${interaction.user.username}` },
+          timestamp: new Date()
+        };
+
+        interaction.reply({ embeds: [embed] });
       }
-
-      const embed = new EmbedBuilder()
-        .setTitle('Farm Registrado')
-        .setColor('#2ecc71')
-        .setDescription(`O farm foi registrado com sucesso.`)
-        .addFields(
-          { name: 'Cogumelos 🍄', value: `\`${cog}\``, inline: true },
-          { name: 'Sementes 🌱', value: `\`${sem}\``, inline: true }
-        )
-        .setFooter({ text: `Usuário: ${interaction.user.username}` })
-        .setTimestamp();
-
-      return interaction.reply({
-        embeds: [embed],
-        files: [img.url]
-      });
-    });
+    );
   }
 };
