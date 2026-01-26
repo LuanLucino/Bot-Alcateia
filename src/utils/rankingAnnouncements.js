@@ -56,11 +56,11 @@ async function processWeekly(client) {
 
     // Gera ranking visual
     const medalhas = ["🥇", "🥈", "🥉"];
-    const texto = rows.map((r, i) =>
-      (i < 3)
-        ? `${medalhas[i]} <@${r.user_id}> — R$ **${r.valor.toFixed(2)}**`
-        : `${i+1}. <@${r.user_id}> — R$ **${r.valor.toFixed(2)}**`
-    ).join('\n');
+    rows.map((r, i) => {
+    const valor = Number(r.valor) || 0;
+    return `${medalhas[i]} <@${r.user_id}> — R$ **${valor.toFixed(2)}**`;
+}).join("\n");
+
 
     const embed = new EmbedBuilder()
       .setTitle('TOP FARM SEMANAL')
