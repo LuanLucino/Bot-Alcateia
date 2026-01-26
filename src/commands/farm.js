@@ -27,6 +27,7 @@ module.exports = {
     const sem = interaction.options.getString('semente');
     const img = interaction.options.getAttachment('imagem');
 
+    // Salvar no ranking semanal
     db.run(`
       INSERT INTO users_farm (user_id, cogumelo, semente)
       VALUES (?, ?, ?)
@@ -42,7 +43,6 @@ module.exports = {
         return interaction.reply({ content: 'Erro ao registrar.', ephemeral: true });
       }
 
-      // Mensagem final
       let texto = `Farm registrado com sucesso.\nCogumelos: **${cog}**\nSementes: **${sem}**`;
 
       if (img) {
