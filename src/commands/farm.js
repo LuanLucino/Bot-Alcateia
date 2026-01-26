@@ -4,13 +4,13 @@ const db = require('../database/db.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('farm')
-    .setDescription('Registra sua farm semanal.')
-    .addIntegerOption(opt =>
+    .setDescription('Registrar farm semanal.')
+    .addStringOption(opt =>
       opt.setName('cogumelo')
         .setDescription('Quantidade de cogumelos farmados')
         .setRequired(true)
     )
-    .addIntegerOption(opt =>
+    .addStringOption(opt =>
       opt.setName('semente')
         .setDescription('Quantidade de sementes farmadas')
         .setRequired(true)
@@ -23,8 +23,8 @@ module.exports = {
 
   async execute(interaction) {
     const userId = interaction.user.id;
-    const cog = interaction.options.getInteger('cogumelo');
-    const sem = interaction.options.getInteger('semente');
+    const cog = interaction.options.getString('cogumelo');
+    const sem = interaction.options.getString('semente');
     const img = interaction.options.getAttachment('imagem');
 
     db.run(`
@@ -34,21 +34,24 @@ module.exports = {
       DO UPDATE SET
         cogumelo = cogumelo + ?,
         semente = semente + ?
-    `, [userId, cog, sem, cog, sem], err => {
+    `,
+    [userId, cog, sem, cog, sem],
+    err => {
       if (err) {
         console.error(err);
         return interaction.reply({ content: 'Erro ao registrar.', ephemeral: true });
       }
 
-      let msg = `Registrado com sucesso.\nCogumelos: **${cog}**\nSementes: **${sem}**`;
-      
+      // Mensagem final
+      let texto = `Farm registrado com sucesso.\nCogumelos: **${cog}**\nSementes: **${sem}**`;
+
       if (img) {
         return interaction.reply({
-          content: msg,
+          content: texto,
           files: [img.url]
         });
       } else {
-        return interaction.reply(msg);
+        return interaction.reply(texto);
       }
     });
   }
