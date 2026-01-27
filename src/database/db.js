@@ -2,15 +2,19 @@ const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
 const path = require('path');
 
-const dataPath = path.join(__dirname, '..', 'data');
+// Caminho do volume no Railway
+const dataPath = path.join('/app', 'data');
 
+// Garante que o diretório existe
 if (!fs.existsSync(dataPath)) {
   fs.mkdirSync(dataPath, { recursive: true });
 }
 
-const db = new sqlite3.Database(path.join(dataPath, 'farm.db'), (err) => {
+const dbFile = path.join(dataPath, 'farm.db');
+
+const db = new sqlite3.Database(dbFile, (err) => {
   if (err) return console.error(err.message);
-  console.log('SQLite conectado em data/farm.db');
+  console.log(`SQLite conectado em ${dbFile}`);
 });
 
 db.serialize(() => {
@@ -30,7 +34,7 @@ db.serialize(() => {
       user_id TEXT PRIMARY KEY,
       cogumelo INTEGER DEFAULT 0,
       semente INTEGER DEFAULT 0
-    
+    )
   `);
 
   // Histórico bruto (opcional)
