@@ -11,7 +11,7 @@ module.exports = {
 
     db.all(`
       SELECT user_id, cogumelo, semente,
-      (cogumelo + semente) AS total
+        (cogumelo + semente) AS total
       FROM users_farm_monthly
       ORDER BY total DESC
     `, [], async (err, rows) => {
@@ -28,9 +28,9 @@ module.exports = {
 
       const rankingText = rows.map((r, i) => {
         if (i < 3) {
-          return `${medals[i]} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**`;
+          return `${medals[i]} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}** | ⭐ **${r.total}**`;
         } else {
-          return `${i + 1}. <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**`;
+          return `${i + 1}. <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}** | ⭐ **${r.total}**`;
         }
       }).join('\n');
 

@@ -31,6 +31,7 @@ module.exports = {
       return interaction.reply({ content: 'É obrigatório enviar a imagem do farm.', ephemeral: true });
     }
 
+    // Atualiza acumulado semanal
     db.run(`
       INSERT INTO users_farm (user_id, cogumelo, semente)
       VALUES (?, ?, ?)
@@ -46,6 +47,12 @@ module.exports = {
         return interaction.reply({ content: 'Erro ao registrar o farm.', ephemeral: true });
       }
 
+      // Opcional: salva histórico bruto
+      db.run(`
+        INSERT INTO farm_records (user_id, cogumelo, semente, data)
+        VALUES (?, ?, ?, ?)
+      `, [userId, cog, sem, Date.now()]);
+
       const embed = new EmbedBuilder()
         .setTitle('Farm Registrado')
         .setColor('#2ecc71')
@@ -54,7 +61,7 @@ module.exports = {
           { name: 'Cogumelos 🍄', value: `\`${cog}\``, inline: true },
           { name: 'Sementes 🌱', value: `\`${sem}\``, inline: true }
         )
-        .setImage('attachment://farm.png') // Imagem dentro do Embed
+        .setImage('attachment://farm.png')
         .setFooter({ text: `Usuário: ${interaction.user.username}` })
         .setTimestamp();
 

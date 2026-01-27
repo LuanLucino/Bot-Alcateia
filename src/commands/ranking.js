@@ -24,15 +24,15 @@ module.exports = {
         return interaction.editReply('Nenhum dado registrado esta semana.');
       }
 
-      // Medals para top3
+      // Medalhas para top3
       const medals = ['🥇', '🥈', '🥉'];
 
       // Monta o texto do ranking
       const rankingText = rows.map((r, i) => {
         if (i < 3) {
-          return `${medals[i]} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**`;
+          return `${medals[i]} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}** | ⭐ **${r.total}**`;
         } else {
-          return `${i + 1}. <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**`;
+          return `${i + 1}. <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}** | ⭐ **${r.total}**`;
         }
       }).join('\n');
 

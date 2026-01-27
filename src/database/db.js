@@ -19,7 +19,7 @@ const db = new sqlite3.Database(dbFile, (err) => {
 
 db.serialize(() => {
 
-  // Ranking semanal
+  // Ranking semanal (acumulado)
   db.run(`
     CREATE TABLE IF NOT EXISTS users_farm (
       user_id TEXT PRIMARY KEY,
@@ -28,7 +28,7 @@ db.serialize(() => {
     )
   `);
 
-  // Ranking mensal
+  // Ranking mensal (acumulado)
   db.run(`
     CREATE TABLE IF NOT EXISTS users_farm_monthly (
       user_id TEXT PRIMARY KEY,
@@ -42,8 +42,8 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS farm_records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id TEXT NOT NULL,
-      cogumelo_azul REAL DEFAULT 0,
-      semente_azul REAL DEFAULT 0,
+      cogumelo INTEGER DEFAULT 0,
+      semente INTEGER DEFAULT 0,
       data INTEGER NOT NULL
     )
   `);
