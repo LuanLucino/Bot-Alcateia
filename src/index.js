@@ -2,8 +2,8 @@ require('dotenv').config();
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const db = require('./database/db.js');
-const rankingAnnouncements = require('./src/utils/rankingAnnouncements.js');
+const db = require('./database/db.js'); // ✅ caminho ajustado
+const rankingAnnouncements = require('./utils/rankingAnnouncements.js'); // ✅ caminho ajustado
 
 const client = new Client({
   intents: [
