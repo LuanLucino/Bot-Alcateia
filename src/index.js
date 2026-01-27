@@ -4,6 +4,9 @@ const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const db = require('./database/db.js');
 
+// === IMPORTA O MÓDULO DE ANÚNCIOS DE RANKING ===
+const rankingAnnouncements = require('./events/rankingAnnouncements.js');
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds
@@ -20,8 +23,11 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
-client.once('clientReady', () => {
+client.once('ready', () => {
   console.log(`[ONLINE] Logado como ${client.user.tag}`);
+
+  // === INICIALIZA O CRON AQUI ===
+  rankingAnnouncements(client);
 });
 
 client.on('interactionCreate', async (interaction) => {
