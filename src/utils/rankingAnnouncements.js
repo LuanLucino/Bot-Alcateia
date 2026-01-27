@@ -11,7 +11,7 @@ module.exports = function rankingAnnouncements(client) {
 
   setTimeout(() => {
 
-    /*// Semanal: domingo 23:59
+    // Semanal: domingo 23:59
     cron.schedule('59 23 * * 0', async () => {
       console.log('[RANKING] Executando semanal...');
       await processWeekly(client);
@@ -25,20 +25,9 @@ module.exports = function rankingAnnouncements(client) {
         console.log('[RANKING] Executando mensal...');
         await processMonthly(client);
       }
-    }, { timezone: 'America/Sao_Paulo' });*/
+    }, { timezone: 'America/Sao_Paulo' });
 
-    // Teste: semanal às 12:45
-cron.schedule('45 12 * * *', async () => {
-  console.log('[RANKING] Executando semanal (teste 12:45)...');
-  await processWeekly(client);
-}, { timezone: 'America/Sao_Paulo' });
-
-// Teste: mensal/global às 12:50
-cron.schedule('50 12 * * *', async () => {
-  console.log('[RANKING] Executando mensal/global (teste 12:50)...');
-  await processMonthly(client);
-}, { timezone: 'America/Sao_Paulo' });
-
+    
 
   }, 3000);
 };
