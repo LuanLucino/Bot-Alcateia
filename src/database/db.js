@@ -30,7 +30,7 @@ db.serialize(() => {
       user_id TEXT PRIMARY KEY,
       cogumelo INTEGER DEFAULT 0,
       semente INTEGER DEFAULT 0
-    )
+    
   `);
 
   // Histórico bruto (opcional)
@@ -47,4 +47,3 @@ db.serialize(() => {
 });
 
 module.exports = db;
-//aaaa//
