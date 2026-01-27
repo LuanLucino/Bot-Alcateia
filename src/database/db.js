@@ -1,13 +1,16 @@
 const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
+const path = require('path');
 
-if (!fs.existsSync('/data')) {
-  fs.mkdirSync('/data', { recursive: true });
+const dataPath = path.join(__dirname, '..', 'data');
+
+if (!fs.existsSync(dataPath)) {
+  fs.mkdirSync(dataPath, { recursive: true });
 }
 
-const db = new sqlite3.Database('/data/farm.db', (err) => {
+const db = new sqlite3.Database(path.join(dataPath, 'farm.db'), (err) => {
   if (err) return console.error(err.message);
-  console.log('SQLite conectado em /data/farm.db');
+  console.log('SQLite conectado em data/farm.db');
 });
 
 db.serialize(() => {
@@ -40,14 +43,6 @@ db.serialize(() => {
       data INTEGER NOT NULL
     )
   `);
-
-  db.run(`
-  CREATE TABLE IF NOT EXISTS users_farm_monthly (
-    user_id TEXT PRIMARY KEY,
-    valor REAL DEFAULT 0
-  )
-`);
-
 
 });
 
