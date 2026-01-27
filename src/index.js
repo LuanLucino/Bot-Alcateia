@@ -2,20 +2,19 @@ require('dotenv').config();
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const db = require('./database/db.js');
-
-// === IMPORTA O MÓDULO DE ANÚNCIOS DE RANKING ===
-const rankingAnnouncements = require('./events/rankingAnnouncements.js');
+const db = require('./src/database/db.js');
+const rankingAnnouncements = require('./src/utils/rankingAnnouncements.js');
 
 const client = new Client({
   intents: [
-    GatewayIntentBits.Guilds
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages
   ]
 });
 
 client.commands = new Collection();
 
-const commandsPath = path.join(__dirname, 'commands');
+const commandsPath = path.join(__dirname, 'src', 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'));
 
 for (const file of commandFiles) {
@@ -26,7 +25,7 @@ for (const file of commandFiles) {
 client.once('ready', () => {
   console.log(`[ONLINE] Logado como ${client.user.tag}`);
 
-  // === INICIALIZA O CRON AQUI ===
+  // inicia o cron
   rankingAnnouncements(client);
 });
 
