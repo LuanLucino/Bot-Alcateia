@@ -47,9 +47,9 @@ module.exports = {
         return interaction.reply({ content: 'Erro ao registrar o farm.', ephemeral: true });
       }
 
-      // Opcional: salva histórico bruto
+      // Salva histórico bruto (usando colunas corretas)
       db.run(`
-        INSERT INTO farm_records (user_id, cogumelo, semente, data)
+        INSERT INTO farm_records (user_id, cogumelo_azul, semente_azul, data)
         VALUES (?, ?, ?, ?)
       `, [userId, cog, sem, Date.now()]);
 

@@ -37,13 +37,13 @@ db.serialize(() => {
     )
   `);
 
-  // Histórico bruto (opcional)
+  // Histórico bruto (padronizado com colunas *_azul)
   db.run(`
     CREATE TABLE IF NOT EXISTS farm_records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id TEXT NOT NULL,
-      cogumelo INTEGER DEFAULT 0,
-      semente INTEGER DEFAULT 0,
+      cogumelo_azul INTEGER DEFAULT 0,
+      semente_azul INTEGER DEFAULT 0,
       data INTEGER NOT NULL
     )
   `);
