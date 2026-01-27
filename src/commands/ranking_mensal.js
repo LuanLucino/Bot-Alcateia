@@ -7,6 +7,8 @@ module.exports = {
     .setDescription('Mostra o ranking mensal acumulado.'),
 
   async execute(interaction) {
+    await interaction.deferReply();
+
     db.all(`
       SELECT user_id, cogumelo, semente,
       (cogumelo + semente) AS total
@@ -15,27 +17,31 @@ module.exports = {
     `, [], async (err, rows) => {
       if (err) {
         console.error(err);
-        return interaction.reply('Erro ao consultar o ranking mensal.');
+        return interaction.editReply('Erro ao consultar o ranking mensal.');
       }
 
       if (!rows || rows.length === 0) {
-        return interaction.reply('Ainda não existem registros no ranking mensal.');
+        return interaction.editReply('Ainda não existem registros no ranking mensal.');
       }
 
-      let texto = rows.map((r, i) => {
-        const pos = i + 1;
-        const medal = pos === 1 ? ':crown:' : pos === 2 ? ':second_place:' : pos === 3 ? ':third_place:' : `**#${pos}**`;
-        return `${medal} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**`;
+      const medals = ['🥇', '🥈', '🥉'];
+
+      const rankingText = rows.map((r, i) => {
+        if (i < 3) {
+          return `${medals[i]} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**`;
+        } else {
+          return `${i + 1}. <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**`;
+        }
       }).join('\n');
 
       const embed = new EmbedBuilder()
         .setTitle('RANKING MENSAL')
-        .setDescription(texto)
+        .setDescription(rankingText)
         .setColor('#9b59b6')
         .setTimestamp()
-        .setFooter({ text: 'Ranking mensal' });
+        .setFooter({ text: 'Ranking mensal acumulado' });
 
-      await interaction.reply({ embeds: [embed] });
+      return interaction.editReply({ embeds: [embed] });
     });
   }
 };
