@@ -24,27 +24,22 @@ module.exports = {
         return interaction.editReply('Nenhum dado registrado esta semana.');
       }
 
-      const top3 = rows.slice(0, 3);
-      const resto = rows.slice(3);
+      // Medals para top3
+      const medals = ['🥇', '🥈', '🥉'];
 
-      let descTop = '';
-      top3.forEach((r, i) => {
-        const medal = i === 0 ? '🏆' : i === 1 ? '🥈' : '🥉';
-        descTop += `${medal} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**\n`;
-      });
-
-      let descRest = '';
-      resto.forEach((r, i) => {
-        descRest += `**${i + 4}.** <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**\n`;
-      });
+      // Monta o texto do ranking
+      const rankingText = rows.map((r, i) => {
+        if (i < 3) {
+          return `${medals[i]} <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**`;
+        } else {
+          return `${i + 1}. <@${r.user_id}> — 🍄 **${r.cogumelo}** | 🌱 **${r.semente}**`;
+        }
+      }).join('\n');
 
       const embed = new EmbedBuilder()
         .setTitle('RANKING SEMANAL')
         .setColor('#3498db')
-        .addFields(
-          { name: 'Top 3', value: descTop || 'Nenhum' },
-          { name: 'Demais Colocados', value: descRest || 'Nenhum' }
-        )
+        .setDescription(rankingText)
         .setTimestamp()
         .setFooter({ text: 'Ranking semanal atualizado' });
 
