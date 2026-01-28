@@ -5,6 +5,7 @@ const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const db = require('./database/db.js');
 const rankingAnnouncements = require('./utils/rankingAnnouncements.js');
 const acaoSaldoAnnouncements = require('./modulo_acao_saldo/acaoSaldoAnnouncements.js');
+const drogasAnnouncements = require('./modulo_drogas/drogasAnnouncements.js');
 
 const client = new Client({
   intents: [
@@ -37,12 +38,24 @@ for (const file of acaoFiles) {
   }
 }
 
+// Carrega comandos da pasta modulo_drogas (parte 3 - drogas)
+const drogasPath = path.join(__dirname, 'modulo_drogas');
+const drogasFiles = fs.readdirSync(drogasPath).filter(f => f.endsWith('.js'));
+
+for (const file of drogasFiles) {
+  const command = require(path.join(drogasPath, file));
+  if (command.data && command.execute) {
+    client.commands.set(command.data.name, command);
+  }
+}
+
 client.once('ready', () => {
   console.log(`[ONLINE] Logado como ${client.user.tag}`);
 
   // inicia os cron jobs
-  rankingAnnouncements(client);      // parte 1
-  acaoSaldoAnnouncements(client);    // parte 2
+  rankingAnnouncements(client);       // parte 1
+  acaoSaldoAnnouncements(client);     // parte 2
+  drogasAnnouncements(client);        // parte 3
 });
 
 client.on('interactionCreate', async (interaction) => {
