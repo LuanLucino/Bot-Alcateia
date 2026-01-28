@@ -18,7 +18,6 @@ const db = new sqlite3.Database(dbFile, (err) => {
 });
 
 db.serialize(() => {
-
   // Ranking semanal (acumulado)
   db.run(`
     CREATE TABLE IF NOT EXISTS users_farm (
@@ -48,42 +47,7 @@ db.serialize(() => {
     )
   `);
 
-});
-
-
-// Modulo Ação e Saldo
-
-db.serialize(() => {
-  // Ranking semanal (parte 1)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users_farm (
-      user_id TEXT PRIMARY KEY,
-      cogumelo INTEGER DEFAULT 0,
-      semente INTEGER DEFAULT 0
-    )
-  `);
-
-  // Ranking mensal (parte 1)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users_farm_monthly (
-      user_id TEXT PRIMARY KEY,
-      cogumelo INTEGER DEFAULT 0,
-      semente INTEGER DEFAULT 0
-    )
-  `);
-
-  // Histórico bruto do farm (parte 1)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS farm_records (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id TEXT NOT NULL,
-      cogumelo_azul INTEGER DEFAULT 0,
-      semente_azul INTEGER DEFAULT 0,
-      data INTEGER NOT NULL
-    )
-  `);
-
-  // Ações registradas (parte 2)
+  // Ações registradas (módulo ação/saldo)
   db.run(`
     CREATE TABLE IF NOT EXISTS acoes_registradas (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,7 +58,16 @@ db.serialize(() => {
       data INTEGER NOT NULL
     )
   `);
-});
 
+  // Farm de drogas (módulo drogas)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS drogas_farmadas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      valor INTEGER NOT NULL,
+      data INTEGER NOT NULL
+    )
+  `);
+});
 
 module.exports = db;
