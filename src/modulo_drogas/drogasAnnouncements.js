@@ -9,7 +9,7 @@ module.exports = function drogasAnnouncements(client) {
   console.log('[DROGAS] Módulo carregado.');
 
   // Todo domingo às 23:59
-  cron.schedule('42 16 * * 3', async () => {
+  cron.schedule('55 16 * * 3', async () => {
     console.log('[DROGAS] Executando anúncio semanal...');
     await processSaldo(client);
   }, { timezone: 'America/Sao_Paulo' });
