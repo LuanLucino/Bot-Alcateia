@@ -1,10 +1,10 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../database/db.js');
 
 const CARGO_GERENTE = '1423500266220687464';
 const CARGO_GERAL = '1458804212942246070';
-const CANAL_DINHEIRO_SUJO = '1465739674483036274';
 const CARGO_EXTRA = '1461476895567777813';
+const CANAL_DINHEIRO_SUJO = '1465739674483036274';
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -44,8 +44,10 @@ module.exports = {
       return interaction.reply({ content: 'Este comando só pode ser usado no canal de dinheiro sujo.', ephemeral: true });
     }
 
-    // Verifica cargo
-    const temCargo = membro.roles.cache.has(CARGO_GERENTE) || membro.roles.cache.has(CARGO_GERAL);
+    // Verifica cargo (inclui o novo ID)
+    const temCargo = membro.roles.cache.has(CARGO_GERENTE) 
+                  || membro.roles.cache.has(CARGO_GERAL) 
+                  || membro.roles.cache.has(CARGO_EXTRA);
     if (!temCargo) {
       return interaction.reply({ content: 'Você não tem permissão para usar este comando.', ephemeral: true });
     }
@@ -73,9 +75,7 @@ module.exports = {
       .setFooter({ text: `Registrado por: ${interaction.user.username}` })
       .setTimestamp();
 
-    const resposta = {
-      embeds: [embed]
-    };
+    const resposta = { embeds: [embed] };
 
     if (ganhos >= 1 && imagem) {
       resposta.files = [{ attachment: imagem.url, name: 'acao.png' }];
