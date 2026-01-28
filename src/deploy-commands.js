@@ -16,28 +16,27 @@ console.log('[DEPLOY] Registrando comandos...');
 
 const commands = [];
 
-// Carrega comandos da pasta commands (parte 1)
+// Pasta commands (parte 1 - farm/ranking)
 const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'));
+const files = fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'));
 
-for (const file of commandFiles) {
-  const command = require(path.join(commandsPath, file));
-  if (command.data && command.execute) {
-    client.commands.set(command.data.name, command);
+for (const file of files) {
+  const cmd = require(path.join(commandsPath, file));
+  if (cmd.data) {
+    commands.push(cmd.data.toJSON());
   }
 }
 
-// Carrega comandos da pasta modulo_acao_saldo (parte 2)
+// Modulo Ação e Saldo (parte 2)
 const acaoPath = path.join(__dirname, 'modulo_acao_saldo');
-const acaoFiles = fs.readdirSync(acaoPath).filter(f => f.endsWith('.js'));
+const acaoFiles = fs.readdirSync(acaoPath).filter(file => file.endsWith('.js'));
 
 for (const file of acaoFiles) {
   const command = require(path.join(acaoPath, file));
-  if (command.data && command.execute) {
-    client.commands.set(command.data.name, command);
+  if (command.data) {
+    commands.push(command.data.toJSON());
   }
 }
-
 // Modulo Ação e Saldo Acima
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
