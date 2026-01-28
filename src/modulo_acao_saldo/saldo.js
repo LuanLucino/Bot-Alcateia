@@ -4,6 +4,7 @@ const db = require('../database/db.js');
 const CARGO_GERENTE = '1423500266220687464';
 const CARGO_GERAL = '1458804212942246070';
 const CANAL_DINHEIRO_SUJO = '1465739674483036274';
+const CARGO_EXTRA = '1461476895567777813';
 
 module.exports = {
   data: new SlashCommandBuilder()

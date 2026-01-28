@@ -15,25 +15,29 @@ if (!CLIENT_ID || !GUILD_ID || !DISCORD_TOKEN) {
 console.log('[DEPLOY] Registrando comandos...');
 
 const commands = [];
+
+// Pasta commands (parte 1 - farm/ranking)
 const commandsPath = path.join(__dirname, 'commands');
 const files = fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'));
 
 for (const file of files) {
   const cmd = require(path.join(commandsPath, file));
-  commands.push(cmd.data.toJSON());
+  if (cmd.data) {
+    commands.push(cmd.data.toJSON());
+  }
 }
 
-//Modulo Ação e Saldo
-
+// Modulo Ação e Saldo (parte 2)
 const acaoPath = path.join(__dirname, 'modulo_acao_saldo');
 const acaoFiles = fs.readdirSync(acaoPath).filter(file => file.endsWith('.js'));
 
 for (const file of acaoFiles) {
   const command = require(path.join(acaoPath, file));
-  commands.push(command.data.toJSON());
+  if (command.data) {
+    commands.push(command.data.toJSON());
+  }
 }
 // Modulo Ação e Saldo Acima
-
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
 
