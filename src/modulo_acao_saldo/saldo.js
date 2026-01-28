@@ -20,7 +20,7 @@ module.exports = {
       return interaction.reply({ content: 'Este comando só pode ser usado no canal de dinheiro sujo.', ephemeral: true });
     }
 
-    // Verifica cargo (inclui o novo ID)
+    // Verifica cargo
     const temCargo = membro.roles.cache.has(CARGO_GERENTE) 
                   || membro.roles.cache.has(CARGO_GERAL) 
                   || membro.roles.cache.has(CARGO_EXTRA);
@@ -41,10 +41,17 @@ module.exports = {
       }
 
       if (!rows || rows.length === 0) {
-        return interaction.reply('Nenhum registro de ações encontrado.');
+        const embed = new EmbedBuilder()
+          .setTitle('SALDO ACUMULADO')
+          .setDescription('Nenhum registro de ações encontrado.')
+          .setColor('#f1c40f')
+          .setTimestamp();
+        return interaction.reply({ embeds: [embed] });
       }
 
-      const texto = rows.map((r, i) => `${i+1}. <@${r.user_id}> — 💰 **R$ ${r.total}**`).join("\n");
+      const texto = rows.map((r, i) => 
+        `${i+1}. <@${r.user_id}> — 💰 **R$ ${r.total.toLocaleString('pt-BR')}**`
+      ).join("\n");
 
       const embed = new EmbedBuilder()
         .setTitle('SALDO ACUMULADO')

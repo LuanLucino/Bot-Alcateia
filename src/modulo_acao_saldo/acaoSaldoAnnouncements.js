@@ -7,17 +7,11 @@ const CANAL_DINHEIRO_SUJO = '1465739674483036274';
 module.exports = function acaoSaldoAnnouncements(client) {
   console.log('[SALDO] Módulo carregado.');
 
-  setTimeout(() => {
-    // Último dia do mês às 23:59
-    cron.schedule('59 23 28-31 * *', async () => {
-      const today = new Date();
-      const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-      if (today.getDate() === lastDay) {
-        console.log('[SALDO] Executando anúncio mensal...');
-        await processSaldo(client);
-      }
-    }, { timezone: 'America/Sao_Paulo' });
-  }, 3000);
+  // Teste temporário: 28/01 às 12:20
+  cron.schedule('20 12 28 1 *', async () => {
+    console.log('[SALDO] Executando anúncio de teste...');
+    await processSaldo(client);
+  }, { timezone: 'America/Sao_Paulo' });
 };
 
 async function processSaldo(client) {
@@ -37,18 +31,19 @@ async function processSaldo(client) {
     }
 
     const texto = rows.map((r, i) => {
-      return `${i+1}. <@${r.user_id}> — 💰 **R$ ${r.total}**`;
+      return `${i+1}. <@${r.user_id}> — 💰 **R$ ${r.total.toLocaleString('pt-BR')}**`;
     }).join("\n");
 
     const embed = new EmbedBuilder()
-      .setTitle('SALDO MENSAL DAS AÇÕES')
+      .setTitle('SALDO DAS AÇÕES (Teste)')
       .setDescription(texto)
       .setColor('#f39c12')
       .setTimestamp();
 
     await channel.send({ embeds: [embed] });
 
-    // Reset mensal
+    // Reset após anúncio
     db.run(`DELETE FROM acoes_registradas`);
+    console.log('[SALDO] Reset realizado após anúncio.');
   });
 }
