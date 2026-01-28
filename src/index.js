@@ -4,6 +4,7 @@ const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const db = require('./database/db.js'); // ✅ caminho ajustado
 const rankingAnnouncements = require('./utils/rankingAnnouncements.js'); // ✅ caminho ajustado
+const acaoSaldoAnnouncements = require('./modulo_acao_saldo/acaoSaldoAnnouncements.js');
 
 const client = new Client({
   intents: [
@@ -43,5 +44,14 @@ client.on('interactionCreate', async (interaction) => {
     return interaction.reply({ content: 'Erro ao executar o comando.', ephemeral: true });
   }
 });
+
+// Modulo Ação e Saldo
+
+client.once('ready', () => {
+  console.log(`[ONLINE] Logado como ${client.user.tag}`);
+  rankingAnnouncements(client);      // parte 1
+  acaoSaldoAnnouncements(client);    // parte 2
+});
+
 
 client.login(process.env.DISCORD_TOKEN);
