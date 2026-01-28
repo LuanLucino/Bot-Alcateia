@@ -59,6 +59,19 @@ db.serialize(() => {
     )
   `);
 
+  db.run(`
+  CREATE TABLE IF NOT EXISTS vendas_pacotes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    quantidade INTEGER NOT NULL,
+    passaporte INTEGER NOT NULL,
+    desconto INTEGER NOT NULL,
+    valor INTEGER NOT NULL,
+    dia TEXT NOT NULL,
+    data INTEGER NOT NULL
+  )
+`);
+
   // Farm de drogas (módulo drogas)
   db.run(`
     CREATE TABLE IF NOT EXISTS drogas_farmadas (

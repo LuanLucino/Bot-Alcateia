@@ -6,6 +6,7 @@ const db = require('./database/db.js');
 const rankingAnnouncements = require('./utils/rankingAnnouncements.js');
 const acaoSaldoAnnouncements = require('./modulo_acao_saldo/acaoSaldoAnnouncements.js');
 const drogasAnnouncements = require('./modulo_drogas/drogasAnnouncements.js');
+const vendasAnnouncements = require('./modulo_vendas/vendasAnnouncements.js');
 
 const client = new Client({
   intents: [
@@ -49,6 +50,17 @@ for (const file of drogasFiles) {
   }
 }
 
+// Carrega comandos da pasta modulo_vendas (parte 4 - vendas)
+const vendasPath = path.join(__dirname, 'modulo_vendas');
+const vendasFiles = fs.readdirSync(vendasPath).filter(f => f.endsWith('.js'));
+
+for (const file of vendasFiles) {
+  const command = require(path.join(vendasPath, file));
+  if (command.data && command.execute) {
+    client.commands.set(command.data.name, command);
+  }
+}
+
 client.once('ready', () => {
   console.log(`[ONLINE] Logado como ${client.user.tag}`);
 
@@ -56,6 +68,7 @@ client.once('ready', () => {
   rankingAnnouncements(client);       // parte 1
   acaoSaldoAnnouncements(client);     // parte 2
   drogasAnnouncements(client);        // parte 3
+  vendasAnnouncements(client);        // parte 4
 });
 
 client.on('interactionCreate', async (interaction) => {
@@ -73,4 +86,3 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
-//
