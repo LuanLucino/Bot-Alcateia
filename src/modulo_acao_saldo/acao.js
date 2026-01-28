@@ -28,7 +28,7 @@ module.exports = {
     .addAttachmentOption(opt =>
       opt.setName('imagem')
         .setDescription('Foto do depósito (obrigatória se ganhos ≥ 1)')
-        .setRequired(false)
+        .setRequired(false) // ✅ deixa o campo visível no chat
     ),
 
   async execute(interaction) {
@@ -44,7 +44,7 @@ module.exports = {
       return interaction.reply({ content: 'Este comando só pode ser usado no canal de dinheiro sujo.', ephemeral: true });
     }
 
-    // Verifica cargo (inclui o novo ID)
+    // Verifica cargo
     const temCargo = membro.roles.cache.has(CARGO_GERENTE) 
                   || membro.roles.cache.has(CARGO_GERAL) 
                   || membro.roles.cache.has(CARGO_EXTRA);
