@@ -29,6 +29,9 @@ for (const file of commandFiles) {
 // Carrega comandos da pasta modulo_acao_saldo (parte 2 - ação/saldo)
 const acaoPath = path.join(__dirname, 'modulo_acao_saldo');
 const acaoFiles = fs.readdirSync(acaoPath).filter(f => f.endsWith('.js'));
+const acaoCmd = require('./modulo_acao_saldo/acao.js');
+acaoCmd.listenForImages(client);
+
 
 for (const file of acaoFiles) {
   const command = require(path.join(acaoPath, file));
@@ -44,6 +47,8 @@ client.once('ready', () => {
   rankingAnnouncements(client);      // parte 1
   acaoSaldoAnnouncements(client);    // parte 2
 });
+
+
 
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;

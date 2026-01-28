@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Collection } = require('discord.js');
 const db = require('../database/db.js');
 
 const CARGO_GERENTE = '1423500266220687464';
@@ -6,29 +6,21 @@ const CARGO_GERAL = '1458804212942246070';
 const CARGO_EXTRA = '1461476895567777813';
 const CANAL_DINHEIRO_SUJO = '1465739674483036274';
 
+// Coleção temporária para guardar quem está aguardando imagem
+const aguardandoImagem = new Collection();
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('ação')
     .setDescription('Registrar uma ação in-game')
     .addStringOption(opt =>
-      opt.setName('nome')
-        .setDescription('Nome da ação realizada')
-        .setRequired(true)
+      opt.setName('nome').setDescription('Nome da ação realizada').setRequired(true)
     )
     .addStringOption(opt =>
-      opt.setName('dia')
-        .setDescription('Dia da ação (formato DD/MM)')
-        .setRequired(true)
+      opt.setName('dia').setDescription('Dia da ação (formato DD/MM)').setRequired(true)
     )
     .addIntegerOption(opt =>
-      opt.setName('ganhos')
-        .setDescription('Valor ganho na ação (0 = derrota)')
-        .setRequired(true)
-    )
-    .addAttachmentOption(opt =>
-      opt.setName('imagem')
-        .setDescription('Foto do depósito (obrigatória se ganhos ≥ 1)')
-        .setRequired(false) // ✅ deixa o campo visível no chat
+      opt.setName('ganhos').setDescription('Valor ganho na ação (0 = derrota)').setRequired(true)
     ),
 
   async execute(interaction) {
@@ -37,14 +29,11 @@ module.exports = {
     const nome = interaction.options.getString('nome');
     const dia = interaction.options.getString('dia');
     const ganhos = interaction.options.getInteger('ganhos');
-    const imagem = interaction.options.getAttachment('imagem');
 
-    // Verifica canal
     if (canalId !== CANAL_DINHEIRO_SUJO) {
       return interaction.reply({ content: 'Este comando só pode ser usado no canal de dinheiro sujo.', ephemeral: true });
     }
 
-    // Verifica cargo
     const temCargo = membro.roles.cache.has(CARGO_GERENTE) 
                   || membro.roles.cache.has(CARGO_GERAL) 
                   || membro.roles.cache.has(CARGO_EXTRA);
@@ -52,12 +41,7 @@ module.exports = {
       return interaction.reply({ content: 'Você não tem permissão para usar este comando.', ephemeral: true });
     }
 
-    // Verifica imagem obrigatória
-    if (ganhos >= 1 && !imagem) {
-      return interaction.reply({ content: 'Você precisa anexar uma imagem do depósito para registrar uma vitória.', ephemeral: true });
-    }
-
-    // Salva no banco
+    // Salva no banco sem imagem
     db.run(`
       INSERT INTO acoes_registradas (user_id, nome, dia, ganhos, data)
       VALUES (?, ?, ?, ?, ?)
@@ -75,14 +59,44 @@ module.exports = {
       .setFooter({ text: `Registrado por: ${interaction.user.username}` })
       .setTimestamp();
 
-    const resposta = { embeds: [embed] };
+    await interaction.reply({ embeds: [embed] });
 
-    if (ganhos >= 1 && imagem) {
-      resposta.files = [{ attachment: imagem.url, name: 'acao.png' }];
-      embed.setImage('attachment://acao.png');
+    // Se ganhos ≥ 1, pede a imagem
+    if (ganhos >= 1) {
+      await interaction.followUp({ content: 'Agora envie a imagem do depósito como resposta a esta mensagem.' });
+
+      // Marca que este usuário está aguardando imagem
+      aguardandoImagem.set(interaction.user.id, { nome, dia, ganhos });
     }
-
-    return interaction.reply(resposta);
   }
 };
-//***// */
+
+// Listener para capturar attachments
+module.exports.listenForImages = (client) => {
+  client.on('messageCreate', async (message) => {
+    if (!aguardandoImagem.has(message.author.id)) return;
+    if (!message.attachments || message.attachments.size === 0) return;
+
+    const dados = aguardandoImagem.get(message.author.id);
+    const imagem = message.attachments.first();
+
+    // Atualiza embed
+    const embed = new EmbedBuilder()
+      .setTitle('Ação Registrada com Imagem')
+      .setColor('#27ae60')
+      .setDescription(`Imagem anexada com sucesso.`)
+      .addFields(
+        { name: 'Nome da ação', value: dados.nome, inline: true },
+        { name: 'Dia', value: dados.dia, inline: true },
+        { name: 'Ganhos', value: `R$ ${dados.ganhos}`, inline: true }
+      )
+      .setImage(imagem.url)
+      .setFooter({ text: `Registrado por: ${message.author.username}` })
+      .setTimestamp();
+
+    await message.reply({ embeds: [embed] });
+
+    // Remove da lista de espera
+    aguardandoImagem.delete(message.author.id);
+  });
+};
