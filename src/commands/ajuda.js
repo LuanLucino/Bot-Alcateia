@@ -14,7 +14,7 @@ module.exports = {
         { name: '🌱 /farm', value: 'Executa o comando de farm (ganhos automáticos)', inline: false },
         { name: '🏆 /ranking', value: 'Mostra o ranking dos jogadores baseado nos ganhos', inline: false },
         { name: 'ℹ️ /ajuda', value: 'Exibe esta lista de comandos', inline: false },
-        { name: '⚠️ Comandos exclusivos da gerência', value: 'Somente cargos de Gerência e acima podem usar:', inline: false },
+        { name: '⚠️ Comandos exclusivos da gerência', value: 'Somente cargos de Gerência:', inline: false },
         { name: '📌 /ação', value: 'Registrar uma ação in-game (nome, dia, ganhos, imagem opcional)', inline: false },
         { name: '💰 /saldo', value: 'Mostra o saldo acumulado das ações registradas', inline: false }
       )
