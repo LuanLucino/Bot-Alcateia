@@ -7,10 +7,15 @@ const CANAL_DINHEIRO_SUJO = '1465739674483036274';
 module.exports = function acaoSaldoAnnouncements(client) {
   console.log('[SALDO] Módulo carregado.');
 
-  // Teste temporário: 28/01 às 12:20
-  cron.schedule('20 12 28 1 *', async () => {
-    console.log('[SALDO] Executando anúncio de teste...');
-    await processSaldo(client);
+  // Último dia do mês às 23:59
+  cron.schedule('59 23 28-31 * *', async () => {
+    const today = new Date();
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
+    if (today.getDate() === lastDay) {
+      console.log('[SALDO] Executando anúncio mensal...');
+      await processSaldo(client);
+    }
   }, { timezone: 'America/Sao_Paulo' });
 };
 
@@ -35,14 +40,14 @@ async function processSaldo(client) {
     }).join("\n");
 
     const embed = new EmbedBuilder()
-      .setTitle('SALDO DAS AÇÕES (Teste)')
+      .setTitle('SALDO MENSAL DAS AÇÕES')
       .setDescription(texto)
       .setColor('#f39c12')
       .setTimestamp();
 
     await channel.send({ embeds: [embed] });
 
-    // Reset após anúncio
+    // Reset mensal
     db.run(`DELETE FROM acoes_registradas`);
     console.log('[SALDO] Reset realizado após anúncio.');
   });
