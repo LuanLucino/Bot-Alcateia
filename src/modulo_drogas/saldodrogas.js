@@ -10,10 +10,11 @@ module.exports = {
     .setDescription('Mostra o total farmado com pacotes de drogas'),
 
   async execute(interaction) {
-    const canalId = interaction.channelId;
-    if (canalId !== CANAL_DROGAS) {
+    if (interaction.channelId !== CANAL_DROGAS) {
       return interaction.reply({ content: 'Este comando só pode ser usado no canal de drogas.', ephemeral: true });
     }
+
+    await interaction.deferReply();
 
     db.all(`
       SELECT user_id, SUM(valor) AS total
@@ -23,17 +24,17 @@ module.exports = {
     `, [], async (err, rows) => {
       if (err) {
         console.error(err);
-        return interaction.reply({ content: 'Erro ao consultar saldo.', ephemeral: true });
+        return interaction.editReply({ content: 'Erro ao consultar saldo.' });
       }
 
       if (!rows || rows.length === 0) {
-        return interaction.reply('Nenhum registro de farm de drogas encontrado.');
+        return interaction.editReply('Nenhum registro de farm de drogas encontrado.');
       }
 
       const totalGeral = rows.reduce((acc, r) => acc + r.total, 0);
       const progresso = ((totalGeral / META_SEMANAL) * 100).toFixed(1);
 
-      const texto = rows.map((r, i) => 
+      const texto = rows.map((r, i) =>
         `${i+1}. <@${r.user_id}> — 💊 R$ ${r.total.toLocaleString('pt-BR')}`
       ).join("\n");
 
@@ -44,7 +45,7 @@ module.exports = {
         .setTimestamp()
         .setFooter({ text: 'Farm de drogas semanal' });
 
-      return interaction.reply({ embeds: [embed] });
+      return interaction.editReply({ embeds: [embed] });
     });
   }
 };

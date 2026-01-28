@@ -9,10 +9,11 @@ module.exports = {
     .setDescription('Mostra o ranking dos membros que mais farmaram drogas'),
 
   async execute(interaction) {
-    const canalId = interaction.channelId;
-    if (canalId !== CANAL_DROGAS) {
+    if (interaction.channelId !== CANAL_DROGAS) {
       return interaction.reply({ content: 'Este comando só pode ser usado no canal de drogas.', ephemeral: true });
     }
+
+    await interaction.deferReply();
 
     db.all(`
       SELECT user_id, SUM(valor) AS total
@@ -22,14 +23,14 @@ module.exports = {
     `, [], async (err, rows) => {
       if (err) {
         console.error(err);
-        return interaction.reply({ content: 'Erro ao consultar ranking.', ephemeral: true });
+        return interaction.editReply({ content: 'Erro ao consultar ranking.' });
       }
 
       if (!rows || rows.length === 0) {
-        return interaction.reply('Nenhum registro de farm de drogas encontrado.');
+        return interaction.editReply('Nenhum registro de farm de drogas encontrado.');
       }
 
-      const texto = rows.map((r, i) => 
+      const texto = rows.map((r, i) =>
         `${i+1}. <@${r.user_id}> — 💊 R$ ${r.total.toLocaleString('pt-BR')}`
       ).join("\n");
 
@@ -40,7 +41,7 @@ module.exports = {
         .setTimestamp()
         .setFooter({ text: 'Ranking semanal de farm de drogas' });
 
-      return interaction.reply({ embeds: [embed] });
+      return interaction.editReply({ embeds: [embed] });
     });
   }
 };
