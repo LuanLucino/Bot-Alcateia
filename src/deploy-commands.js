@@ -40,6 +40,14 @@ for (const file of drogasFiles) {
   if (command.data) commands.push(command.data.toJSON());
 }
 
+// Modulo Vendas
+const vendasPath = path.join(__dirname, 'modulo_vendas');
+const vendasFiles = fs.readdirSync(vendasPath).filter(file => file.endsWith('.js'));
+for (const file of vendasFiles) {
+  const command = require(path.join(vendasPath, file));
+  if (command.data) commands.push(command.data.toJSON());
+}
+
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
 
 (async () => {
