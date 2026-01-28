@@ -55,3 +55,6 @@ async function processSaldo(client) {
     console.log('[DROGAS] Reset realizado após anúncio.');
   });
 }
+
+
+/// 
