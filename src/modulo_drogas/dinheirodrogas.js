@@ -20,7 +20,6 @@ module.exports = {
 
   async execute(interaction) {
     const canalId = interaction.channelId;
-    const membro = interaction.member;
     const valor = interaction.options.getInteger('valor');
     const imagem = interaction.options.getAttachment('imagem');
 
@@ -29,9 +28,12 @@ module.exports = {
       return interaction.reply({ content: 'Este comando só pode ser usado no canal de drogas.', ephemeral: true });
     }
 
+    // Defere resposta para evitar timeout
+    await interaction.deferReply();
+
     // Verifica imagem obrigatória
     if (!imagem) {
-      return interaction.reply({ content: 'Você precisa anexar uma imagem do depósito.', ephemeral: true });
+      return interaction.editReply({ content: 'Você precisa anexar uma imagem do depósito.' });
     }
 
     // Salva no banco
@@ -52,7 +54,7 @@ module.exports = {
       .setFooter({ text: `Registrado por: ${interaction.user.username}` })
       .setTimestamp();
 
-    return interaction.reply({
+    return interaction.editReply({
       embeds: [embed],
       files: [{ attachment: imagem.url, name: 'deposito.png' }]
     });
