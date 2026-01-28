@@ -25,7 +25,12 @@ module.exports = {
         { name: '💊 Módulo Drogas (meta semanal R$ 1.500.000)', value: 'Comandos abertos a todos os membros:', inline: false },
         { name: '📥 /dinheirodroga', value: 'Registrar depósito de dinheiro sujo vindo da venda de drogas (valor + imagem)', inline: false },
         { name: '📊 /saldodrogas', value: 'Mostra o saldo acumulado e progresso da meta semanal', inline: false },
-        { name: '🏆 /rankingdroga', value: 'Exibe o ranking dos membros que mais farmaram drogas', inline: false }
+        { name: '🏆 /rankingdroga', value: 'Exibe o ranking dos membros que mais farmaram drogas', inline: false },
+
+        // Módulo Vendas
+        { name: '📦 Módulo Vendas de Pacotes', value: 'Comandos exclusivos para cargos autorizados (Gerente, Geral, Extra):', inline: false },
+        { name: '📝 /venda', value: 'Registrar venda de pacotes (quantidade, passaporte, desconto %, dia, imagem obrigatória)', inline: false },
+        { name: '💹 /saldopacote', value: 'Mostra o saldo acumulado das vendas de pacotes', inline: false }
       )
       .setFooter({ text: 'Use os comandos no canal correto e com as permissões adequadas.' })
       .setTimestamp();

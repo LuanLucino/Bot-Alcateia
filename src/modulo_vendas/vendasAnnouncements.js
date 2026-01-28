@@ -5,37 +5,44 @@ const { EmbedBuilder } = require('discord.js');
 const CANAL_VENDAS = '1465093834072391812';
 
 module.exports = (client) => {
-  // Teste: executa no dia 28/01 às 18:10
-  cron.schedule('10 18 28 1 *', async () => {
-    const canal = await client.channels.fetch(CANAL_VENDAS);
+  // Executa todo dia às 23:59 e verifica se é o último dia do mês
+  cron.schedule('59 23 * * *', async () => {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
 
-    db.all(`
-      SELECT user_id, SUM(valor) AS total
-      FROM vendas_pacotes
-      GROUP BY user_id
-      ORDER BY total DESC
-    `, [], async (err, rows) => {
-      if (err) return console.error(err);
+    // Se amanhã for dia 1, significa que hoje é o último dia do mês
+    if (tomorrow.getDate() === 1) {
+      const canal = await client.channels.fetch(CANAL_VENDAS);
 
-      if (!rows || rows.length === 0) {
-        return canal.send('Nenhuma venda registrada neste período de teste.');
-      }
+      db.all(`
+        SELECT user_id, SUM(valor) AS total
+        FROM vendas_pacotes
+        GROUP BY user_id
+        ORDER BY total DESC
+      `, [], async (err, rows) => {
+        if (err) return console.error(err);
 
-      const texto = rows.map((r, i) =>
-        `${i+1}. <@${r.user_id}> — 📦 R$ ${r.total.toLocaleString('pt-BR')}`
-      ).join("\n");
+        if (!rows || rows.length === 0) {
+          return canal.send('Nenhuma venda registrada este mês.');
+        }
 
-      const embed = new EmbedBuilder()
-        .setTitle('TESTE: ENCERRAMENTO DE VENDAS DE PACOTES')
-        .setDescription(texto)
-        .setColor('#e67e22')
-        .setTimestamp()
-        .setFooter({ text: 'Reset de teste em 28/01 às 18:10' });
+        const texto = rows.map((r, i) =>
+          `${i+1}. <@${r.user_id}> — 📦 R$ ${r.total.toLocaleString('pt-BR')}`
+        ).join("\n");
 
-      await canal.send({ embeds: [embed] });
+        const embed = new EmbedBuilder()
+          .setTitle('ENCERRAMENTO MENSAL DE VENDAS DE PACOTES')
+          .setDescription(texto)
+          .setColor('#e67e22')
+          .setTimestamp()
+          .setFooter({ text: 'Ranking mensal de vendas de pacotes' });
 
-      // Reset da tabela
-      db.run(`DELETE FROM vendas_pacotes`);
-    });
+        await canal.send({ embeds: [embed] });
+
+        // Reset da tabela
+        db.run(`DELETE FROM vendas_pacotes`);
+      });
+    }
   });
 };
