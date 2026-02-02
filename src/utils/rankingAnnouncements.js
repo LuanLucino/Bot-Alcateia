@@ -17,15 +17,12 @@ module.exports = function rankingAnnouncements(client) {
       await processWeekly(client);
     }, { timezone: 'America/Sao_Paulo' });
 
-    // Mensal: último dia do mês 23:59
-    cron.schedule('43 00 2 * *', async () => {
-      const today = new Date();
-      const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-      if (today.getDate() === lastDay) {
-        console.log('[RANKING] Executando mensal...');
-        await processMonthly(client);
-      }
-    }, { timezone: 'America/Sao_Paulo' });
+    // Mensal: hoje, 2 de fevereiro às 00:50
+cron.schedule('50 0 2 2 *', async () => {
+  console.log('[RANKING] Executando mensal (forçado hoje)...');
+  await processMonthly(client);
+}, { timezone: 'America/Sao_Paulo' });
+
 
   }, 3000);
 };
