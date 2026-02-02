@@ -3,7 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const cron = require('node-cron');
 
 // ENV
-const CHANNEL_ID = process.env.CHANNEL_ID;
+const CHANNEL_ID = '1465738957819220089'; // Canal fixo para anúncios
 
 // Função principal
 module.exports = function rankingAnnouncements(client) {
@@ -11,9 +11,9 @@ module.exports = function rankingAnnouncements(client) {
 
   setTimeout(() => {
 
-    // Teste: segunda-feira 02/02/2026 às 00:30
-    cron.schedule('30 0 2 2 *', async () => {
-      console.log('[RANKING] Executando semanal (teste)...');
+    // Semanal: domingo 00:35
+    cron.schedule('35 0 * * 0', async () => {
+      console.log('[RANKING] Executando semanal...');
       await processWeekly(client);
     }, { timezone: 'America/Sao_Paulo' });
 
