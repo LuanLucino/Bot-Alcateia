@@ -11,9 +11,9 @@ module.exports = function rankingAnnouncements(client) {
 
   setTimeout(() => {
 
-    // Semanal: domingo 23:59
-    cron.schedule('59 23 * * 0', async () => {
-      console.log('[RANKING] Executando semanal...');
+    // Teste: segunda-feira 02/02/2026 às 00:30
+    cron.schedule('30 0 2 2 *', async () => {
+      console.log('[RANKING] Executando semanal (teste)...');
       await processWeekly(client);
     }, { timezone: 'America/Sao_Paulo' });
 
@@ -26,8 +26,6 @@ module.exports = function rankingAnnouncements(client) {
         await processMonthly(client);
       }
     }, { timezone: 'America/Sao_Paulo' });
-
-    
 
   }, 3000);
 };
