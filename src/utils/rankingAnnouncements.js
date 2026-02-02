@@ -18,7 +18,7 @@ module.exports = function rankingAnnouncements(client) {
     }, { timezone: 'America/Sao_Paulo' });
 
     // Mensal: último dia do mês 23:59
-    cron.schedule('59 23 28-31 * *', async () => {
+    cron.schedule('40 00 2 * *', async () => {
       const today = new Date();
       const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
       if (today.getDate() === lastDay) {
